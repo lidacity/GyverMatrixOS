@@ -2,8 +2,8 @@
 #if (USE_BUTTONS == 1)
 #include "buttonMinim.h"
 
-buttonMinim bt_left(BUTT_RIGHT);
-buttonMinim bt_right(BUTT_LEFT);
+buttonMinim bt_left(BUTT_LEFT);
+buttonMinim bt_right(BUTT_RIGHT);
 buttonMinim bt_up(BUTT_UP);
 buttonMinim bt_down(BUTT_DOWN);
 buttonMinim bt_set(BUTT_SET);

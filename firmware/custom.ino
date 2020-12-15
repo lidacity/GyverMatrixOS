@@ -158,17 +158,8 @@ timerMinim gifTimer(D_GIF_SPEED);
   void animation1() {
   if (gifTimer.isReady()) {
     frameNum++;
-    if (frameNum >= 4) frameNum = 0;
-    switch (frameNum) {
-      case 0: loadImage(frame00);
-        break;
-      case 1: loadImage(frame01);
-        break;
-      case 2: loadImage(frame02);
-        break;
-      case 3: loadImage(frame03);
-        break;
-    }
+    if (frameNum >= sizeof(framesArray)) frameNum = 0;
+    loadImage(framesArray[frameNum]);
   }
   }
 */
@@ -249,17 +240,21 @@ void customRoutine() {
     if (!gamemodeFlag) {
       if (effectTimer.isReady()) {
 #if (OVERLAY_CLOCK == 1 && USE_CLOCK == 1)
-        if (!loadingFlag && !gamemodeFlag && needUnwrap() && modeCode != 0) clockOverlayUnwrap(CLOCK_X, CLOCK_Y);
-        if (loadingFlag) loadFlag2 = true;
+        if (overlayAllowed()) {
+          if (!loadingFlag && !gamemodeFlag && needUnwrap() && modeCode != 0) clockOverlayUnwrap(CLOCK_X, CLOCK_Y);
+          if (loadingFlag) loadFlag2 = true;
+        }
 #endif
 
         customModes();                // режимы крутятся, пиксели мутятся
 
 #if (OVERLAY_CLOCK == 1 && USE_CLOCK == 1)
-        if (!gamemodeFlag && modeCode != 0) clockOverlayWrap(CLOCK_X, CLOCK_Y);
-        if (loadFlag2) {
-          setOverlayColors();
-          loadFlag2 = false;
+        if (overlayAllowed()) {
+          if (!gamemodeFlag && modeCode != 0) clockOverlayWrap(CLOCK_X, CLOCK_Y);
+          if (loadFlag2) {
+            setOverlayColors();
+            loadFlag2 = false;
+          }
         }
 #endif
         loadingFlag = false;

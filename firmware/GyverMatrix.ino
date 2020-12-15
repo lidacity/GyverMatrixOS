@@ -10,8 +10,7 @@
 */
 
 // GyverMatrixOS
-// Версия прошивки 1.9, совместима с приложением GyverMatrixBT версии 1.12 и выше
-
+// Версия прошивки 1.10, совместима с приложением GyverMatrixBT версии 1.12 и выше
 
 // ************************ МАТРИЦА *************************
 // если прошивка не лезет в Arduino NANO - отключай режимы! Строка 60 и ниже
@@ -21,6 +20,7 @@
 
 #define WIDTH 16              // ширина матрицы
 #define HEIGHT 16             // высота матрицы
+#define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
 
 #define COLOR_ORDER GRB       // порядок цветов на ленте. Если цвет отображается некорректно - меняйте. Начать можно с RGB
 
@@ -87,7 +87,7 @@ int AUTOPLAY_PERIOD = 10;     // время между авто сменой р�
 #define LED_PIN 2           // пин ленты
 #define BUTT_UP 14          // кнопка вверх
 #define BUTT_DOWN 13        // кнопка вниз
-#define BUTT_LEFT 16        // кнопка влево
+#define BUTT_LEFT 0         // кнопка влево
 #define BUTT_RIGHT 12       // кнопка вправо
 #define BUTT_SET 15         // кнопка выбор/игра
 
@@ -102,9 +102,37 @@ int AUTOPLAY_PERIOD = 10;     // время между авто сменой р�
 #endif
 
 // ******************************** ДЛЯ РАЗРАБОТЧИКОВ ********************************
-#define SEGMENTS 1             // диодов в одном пикселе
 #define DEBUG 0
 #define NUM_LEDS WIDTH * HEIGHT * SEGMENTS
+
+#define RUNNING_STRING 0
+#define CLOCK_MODE 1
+#define GAME_MODE 2
+#define MADNESS_NOISE 3
+#define CLOUD_NOISE 4
+#define LAVA_NOISE 5
+#define PLASMA_NOISE 6
+#define RAINBOW_NOISE 7
+#define RAINBOWSTRIPE_NOISE 8
+#define ZEBRA_NOISE 9
+#define FOREST_NOISE 10
+#define OCEAN_NOISE 11
+#define SNOW_ROUTINE 12
+#define SPARKLES_ROUTINE 13
+#define MATRIX_ROUTINE 14
+#define STARFALL_ROUTINE 15
+#define BALL_ROUTINE 16
+#define BALLS_ROUTINE 17
+#define RAINBOW_ROUTINE 18
+#define RAINBOWDIAGONAL_ROUTINE 19
+#define FIRE_ROUTINE 20
+#define IMAGE_MODE 21
+
+#if (MCU_TYPE == 1)
+#define FASTLED_INTERRUPT_RETRY_COUNT 0
+#define FASTLED_ALLOW_INTERRUPTS 0
+#include <ESP8266WiFi.h>
+#endif
 
 #include "FastLED.h"
 CRGB leds[NUM_LEDS];
@@ -159,6 +187,10 @@ RTC_DS3231 rtc;
 void setup() {
 #if (BT_MODE == 1)
   Serial.begin(9600);
+#endif
+
+#if (MCU_TYPE == 1)
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #endif
 
 #if (USE_CLOCK == 1 && (MCU_TYPE == 0 || MCU_TYPE == 1))
