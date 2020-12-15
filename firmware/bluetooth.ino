@@ -58,6 +58,26 @@ void effects() {
         break;
       case 11: sparklesRoutine();
         break;
+      case 12: rainbowDiagonalRoutine();
+        break;
+      case 13: madnessNoise();
+        break;
+      case 14: cloudNoise();
+        break;
+      case 15: lavaNoise();
+        break;
+      case 16: plasmaNoise();
+        break;
+      case 17: rainbowNoise();
+        break;
+      case 18: rainbowStripeNoise();
+        break;
+      case 19: zebraNoise();
+        break;
+      case 20: forestNoise();
+        break;
+      case 21: oceanNoise();
+        break;
     }
     FastLED.show();
   }
