@@ -5,15 +5,26 @@ GTimer_ms gifTimer(D_GIF_SPEED);
 
 /*
    Эффекты:
-    sparklesRoutine();  // случайные цветные гаснущие вспышки
-    snowRoutine();      // снег
-    matrixRoutine();    // "матрица"
-    starfallRoutine();  // звездопад (кометы)
-    ballRoutine();      // квадратик
-    ballsRoutine();     // шарики
-    wavesRoutine();     // синусоиды
-    rainbowRoutine();   // радуга во всю матрицу
-    fireRoutine();      // огонь
+    sparklesRoutine();    // случайные цветные гаснущие вспышки
+    snowRoutine();        // снег
+    matrixRoutine();      // "матрица"
+    starfallRoutine();    // звездопад (кометы)
+    ballRoutine();        // квадратик
+    ballsRoutine();       // шарики
+    rainbowRoutine();     // радуга во всю матрицу горизонтальная
+    rainbowDiagonalRoutine();   // радуга во всю матрицу диагональная
+    fireRoutine();        // огонь
+
+  Крутые эффекты "шума":
+    madnessNoise();       // цветной шум во всю матрицу
+    cloudNoise();         // облака
+    lavaNoise();          // лава
+    plasmaNoise();        // плазма
+    rainbowNoise();       // радужные переливы
+    rainbowStripeNoise(); // полосатые радужные переливы
+    zebraNoise();         // зебра
+    forestNoise();        // шумящий лес
+    oceanNoise();         // морская вода
 
   Игры:
     snakeRoutine();     // змейка
@@ -26,47 +37,65 @@ GTimer_ms gifTimer(D_GIF_SPEED);
     fillString("Ваш текст", 2);       // каждая буква случайным цветом!
 
   Рисунки и анимации:
-    loadImage(<название массива>);     // основная функция вывода картинки
-    imageRoutine1();                   // пример использования
-    animation1();                      // пример анимации
+    loadImage(<название массива>);    // основная функция вывода картинки
+    imageRoutine1();                  // пример использования
+    animation1();                     // пример анимации
 
 */
 
 // ************** СВОЙ СПИСОК РЕЖИМОВ **************
 // количество кастомных режимов (которые сами переключаются или кнопкой)
-#define MODES_AMOUNT 15
+#define MODES_AMOUNT 24
 
 void customModes() {
   switch (thisMode) {
-    case 0: fillString("МАТРИЦА НА ОКНЕ", 1);
+    case 0: fillString("КРАСНЫЙ", CRGB::Red);
       break;
-    case 1: snowRoutine();
+    case 1: fillString("РАДУГА", 1);
       break;
-    case 2: sparklesRoutine();
+    case 2: fillString("RGB LED", 2);
       break;
-    case 3: matrixRoutine();
+    case 3: madnessNoise();
       break;
-    case 4: starfallRoutine();
+    case 4: cloudNoise();
       break;
-    case 5: ballRoutine();
+    case 5: lavaNoise();
       break;
-    case 6: ballsRoutine();
+    case 6: plasmaNoise();
       break;
-    case 7: wavesRoutine();
+    case 7: rainbowNoise();
       break;
-    case 8: rainbowRoutine();
+    case 8: rainbowStripeNoise();
       break;
-    case 9: fireRoutine();
+    case 9: zebraNoise();
       break;
-    case 10: snakeRoutine();
+    case 10: forestNoise();
       break;
-    case 11: tetrisRoutine();
+    case 11: oceanNoise();
       break;
-    case 12: mazeRoutine();
+    case 12: snowRoutine();
       break;
-    case 13: fillString("С НОВЫМ ГОДОМ!", CRGB::Blue);
+    case 13: sparklesRoutine();
       break;
-    case 14: fillString("2к19 ЛОЛ КЕК", 2);
+    case 14: matrixRoutine();
+      break;
+    case 15: starfallRoutine();
+      break;
+    case 16: ballRoutine();
+      break;
+    case 17: ballsRoutine();
+      break;
+    case 18: rainbowRoutine();
+      break;
+    case 19: rainbowDiagonalRoutine();
+      break;
+    case 20: fireRoutine();
+      break;
+    case 21: snakeRoutine();
+      break;
+    case 22: tetrisRoutine();
+      break;
+    case 23: mazeRoutine();
       break;
   }
   FastLED.show();
@@ -117,7 +146,8 @@ void loadImage(uint16_t (*frame)[WIDTH]) {
 
 // ********************* ОСНОВНОЙ ЦИКЛ РЕЖИМОВ *******************
 void customRoutine() {
-  if (!BTcontrol) customModes();                    // режимы крутятся, пиксели мутятся
+  if (!BTcontrol)
+    if (effectTimer.isReady()) customModes();                    // режимы крутятся, пиксели мутятся
 
   if (idleState) {
     if (autoplayTimer.isReady() && AUTOPLAY) {    // таймер смены режима

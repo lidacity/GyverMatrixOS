@@ -32,34 +32,35 @@ void bluetoothRoutine() {
 
 // блок эффектов, работают по общему таймеру
 void effects() {
-
-  switch (effect) {
-    case 0: brightnessRoutine();
-      break;
-    case 1: colorsRoutine();
-      break;
-    case 2: snowRoutine();
-      break;
-    case 3: ballRoutine();
-      break;
-    case 4: rainbowRoutine();
-      break;
-    case 5: rainbowColorsRoutine();
-      break;
-    case 6: fireRoutine();
-      break;
-    case 7: matrixRoutine();
-      break;
-    case 8: ballsRoutine();
-      break;
-    case 9: wavesRoutine();
-      break;
-    case 10: starfallRoutine();
-      break;
-	  case 11: sparklesRoutine();
-      break;
+  if (effectTimer.isReady()) {
+    switch (effect) {
+      case 0: brightnessRoutine();
+        break;
+      case 1: colorsRoutine();
+        break;
+      case 2: snowRoutine();
+        break;
+      case 3: ballRoutine();
+        break;
+      case 4: rainbowRoutine();
+        break;
+      case 5: rainbowColorsRoutine();
+        break;
+      case 6: fireRoutine();
+        break;
+      case 7: matrixRoutine();
+        break;
+      case 8: ballsRoutine();
+        break;
+      case 9: //wavesRoutine();  // убран из этой версии, т.к. хлам
+        break;
+      case 10: starfallRoutine();
+        break;
+      case 11: sparklesRoutine();
+        break;
+    }
+    FastLED.show();
   }
-  FastLED.show();
 }
 
 // блок игр
@@ -77,7 +78,7 @@ void games() {
   }
 }
 
-byte index;
+byte parse_index;
 String string_convert = "";
 enum modes {NORMAL, COLOR, TEXT} parseMode;
 
@@ -111,7 +112,7 @@ void parsing() {
 
     idleTimer.reset();
     idleState = false;
-    
+
     if (!BTcontrol) {
       gameSpeed = globalSpeed * 4;
       gameTimer.setInterval(gameSpeed);
@@ -220,7 +221,7 @@ void parsing() {
       if (incomingByte != divider && incomingByte != ending) {   // если это не пробел И не конец
         string_convert += incomingByte;       // складываем в строку
       } else {                                // если это пробел или ; конец пакета
-        if (index == 0) {
+        if (parse_index == 0) {
           byte thisMode = string_convert.toInt();
           if (thisMode == 0 || thisMode == 5) parseMode = COLOR;    // передача цвета (в отдельную переменную)
           else if (thisMode == 6) parseMode = TEXT;
@@ -228,19 +229,20 @@ void parsing() {
           //if (thisMode != 7 || thisMode != 0) runningFlag = false;
         }
 
-        if (index == 1) {       // для второго (с нуля) символа в посылке
-          if (parseMode == NORMAL) intData[index] = string_convert.toInt();             // преобразуем строку в int и кладём в массив}
-          if (parseMode == COLOR) globalColor = strtol(&string_convert[0], NULL, 16);     // преобразуем строку HEX в цифру
+        if (parse_index == 1) {       // для второго (с нуля) символа в посылке
+          if (parseMode == NORMAL) intData[parse_index] = string_convert.toInt();             // преобразуем строку в int и кладём в массив}
+          //if (parseMode == COLOR) globalColor = strtol(&string_convert[0], NULL, 16);     // преобразуем строку HEX в цифру
+          if (parseMode == COLOR) globalColor = (uint32_t)HEXtoInt(string_convert);     // преобразуем строку HEX в цифру
         } else {
-          intData[index] = string_convert.toInt();  // преобразуем строку в int и кладём в массив
+          intData[parse_index] = string_convert.toInt();  // преобразуем строку в int и кладём в массив
         }
         string_convert = "";                  // очищаем строку
-        index++;                              // переходим к парсингу следующего элемента массива
+        parse_index++;                              // переходим к парсингу следующего элемента массива
       }
     }
     if (incomingByte == header) {             // если это $
       parseStarted = true;                      // поднимаем флаг, что можно парсить
-      index = 0;                              // сбрасываем индекс
+      parse_index = 0;                              // сбрасываем индекс
       string_convert = "";                    // очищаем строку
     }
     if (incomingByte == ending) {             // если таки приняли ; - конец парсинга
@@ -250,6 +252,25 @@ void parsing() {
     }
   }
 }
+
+// hex string to uint32_t
+uint32_t HEXtoInt(String hexValue) {
+  byte tens, ones, number1, number2, number3;
+  tens = (hexValue[0] < '9') ? hexValue[0] - '0' : hexValue[0] - '7';
+  ones = (hexValue[1] < '9') ? hexValue[1] - '0' : hexValue[1] - '7';
+  number1 = (16 * tens) + ones;
+
+  tens = (hexValue[2] < '9') ? hexValue[2] - '0' : hexValue[2] - '7';
+  ones = (hexValue[3] < '9') ? hexValue[3] - '0' : hexValue[3] - '7';
+  number2 = (16 * tens) + ones;
+
+  tens = (hexValue[4] < '9') ? hexValue[4] - '0' : hexValue[4] - '7';
+  ones = (hexValue[5] < '9') ? hexValue[5] - '0' : hexValue[5] - '7';
+  number3 = (16 * tens) + ones;
+
+  return ((uint32_t)number1 << 16 | (uint32_t)number2 << 8 | number3 << 0);
+}
+
 #elif (BT_MODE == 0)
 void bluetoothRoutine() {
   return;

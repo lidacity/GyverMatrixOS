@@ -1,6 +1,6 @@
 //игра  тетрис!
 #if (USE_TETRIS == 1)
-// **************** НАСТРОЙКИ ****************
+// **************** НАСТРОЙКИ ТЕТРИС ****************
 #define FAST_SPEED 20     // скорость падения при удержании "вниз" (меньше - быстрее)
 #define STEER_SPEED 40    // скорость перемещения в бок при удержании кнопки (меньше - быстрее) на BT версии не работает!
 
@@ -213,7 +213,7 @@ void gameOver() {
   FastLED.show();
 
   // тут можно вывести счёт lineCleanCounter
-  displayScore(lineCleanCounter);
+  if (!gameDemo) displayScore(lineCleanCounter);
   delay(1000);
   lineCleanCounter = 0;   // сброс счёта
   FastLED.clear();

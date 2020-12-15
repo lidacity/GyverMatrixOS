@@ -1,6 +1,6 @@
 // игра змейка!
 #if (USE_SNAKE == 1)
-// **************** НАСТРОЙКИ ****************
+// **************** НАСТРОЙКИ ЗМЕЙКИ ****************
 #define START_LENGTH 4    // начальная длина змейки
 #define MAX_LENGTH 80     // максимальная длина змейки
 
@@ -113,7 +113,7 @@ void snakeRoutine() {
     FastLED.clear();
     FastLED.show();
     FastLED.setBrightness(BRIGHTNESS);
-    displayScore(snakeLength - START_LENGTH);
+    if (!gameDemo) displayScore(snakeLength - START_LENGTH);
     delay(1000);
     FastLED.clear();
     FastLED.show();

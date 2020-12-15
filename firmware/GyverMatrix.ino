@@ -9,8 +9,7 @@
 */
 
 // GyverMatrixOS
-// Версия прошивки 1.2, совместима с приложением GyverMatrixBT версии 1.7 и выше
-
+// Версия прошивки 1.3, совместима с приложением GyverMatrixBT версии 1.7 и выше
 
 // ******************************** НАСТРОЙКИ ********************************
 // чем больше матрица и количество частиц (эффекты), тем выше шанс того, что всё зависнет!
@@ -37,8 +36,8 @@
 #define DEMO_GAME_SPEED 60    // скорость игр в демо режиме (мс)
 
 #define AUTOPLAY 1            // 0 выкл / 1 вкл автоматическую смену режимов
-#define AUTOPLAY_PERIOD 10    // время между авто сменой режимов (секунды)
-#define IDLE_TIME 10          // время бездействия кнопок или Bluetooth (в секундах) после которого запускается автосмена режимов и демо в играх
+#define AUTOPLAY_PERIOD 7    // время между авто сменой режимов (секунды)
+#define IDLE_TIME 5          // время бездействия кнопок или Bluetooth (в секундах) после которого запускается автосмена режимов и демо в играх
 
 #define GLOBAL_COLOR_1 CRGB::Green    // основной цвет №1 для игр
 #define GLOBAL_COLOR_2 CRGB::Orange   // основной цвет №2 для игр
@@ -57,8 +56,10 @@
 
 // ************** ОТКЛЮЧЕНИЕ КОМПОНЕНТОВ СИСТЕМЫ (для экономии памяти) *************
 #define USE_BUTTONS 0       // использовать физические кнопки управления играми (0 нет, 1 да)
-#define BT_MODE 1           // использовать блютус (0 нет, 1 да)
+#define BT_MODE 0           // использовать блютус (0 нет, 1 да)
+#define USE_NOISE_EFFECTS 1 // крутые полноэкранные эффекты (0 нет, 1 да) СИЛЬНО ЖРУТ ПАМЯТЬ!!!11
 #define USE_FONTS 1         // использовать буквы (бегущая строка) (0 нет, 1 да)
+
 #define USE_TETRIS 1        // тетрис (0 нет, 1 да)
 #define USE_SNAKE 1         // змейка (0 нет, 1 да)
 #define USE_MAZE 1          // лабиринт (0 нет, 1 да)
@@ -71,6 +72,7 @@
 CRGB leds[NUM_LEDS];
 String runningText = "";
 
+static const byte maxDim = max(WIDTH, HEIGHT);
 byte buttons = 4;   // 0 - верх, 1 - право, 2 - низ, 3 - лево, 4 - не нажата
 byte globalBrightness = BRIGHTNESS;
 byte globalSpeed = 200;
@@ -97,7 +99,9 @@ GTimer_ms scrollTimer(D_TEXT_SPEED);
 GTimer_ms idleTimer((long)IDLE_TIME * 1000);
 
 void setup() {
+#if (BT_MODE == 1)
   Serial.begin(9600);
+#endif
 
   // настройки ленты
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );

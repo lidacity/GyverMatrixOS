@@ -6,8 +6,8 @@
 
 // размеры лабиринта ДОЛЖНЫ БЫТЬ НЕЧЁТНЫЕ независимо от размеров матрицы!
 // при SHIFT 1 размер лабиринта можно ставить на 1 длиннее матрицы (матрица 16х16 лабиринт 17х17)
-#define MAZE_WIDTH 15     // ширина лабиринта
-#define MAZE_HEIGHT 11    // высота лабиринта
+#define MAZE_WIDTH 17     // ширина лабиринта
+#define MAZE_HEIGHT 17    // высота лабиринта
 #define SHIFT 1           // (1 да / 0 нет) смещение лабиринта (чтобы не видеть нижнюю и левую стену)
 
 #define MAX_STRAIGHT 7    // максимальная длина прямых отрезков пути по краям
@@ -128,8 +128,10 @@ void movePlayer(int8_t nowX, int8_t nowY, int8_t prevX, int8_t prevY) {
     loadingFlag = true;
     FastLED.clear();
     FastLED.show();
-    displayScore((millis() - labTimer) / 1000);
-    delay(1000);
+    if (!gameDemo) {
+      displayScore((millis() - labTimer) / 1000);
+      delay(1000);
+    }
     return;
   }
   if (GAMEMODE) {
@@ -236,7 +238,7 @@ void CarveMaze(char *maze, int width, int height, int x, int y) {
   int dx, dy;
   int dir, count;
 
-  dir = random() % 4;
+  dir = random(10) % 4;
   count = 0;
   while (count < 4) {
     dx = 0; dy = 0;
@@ -255,7 +257,7 @@ void CarveMaze(char *maze, int width, int height, int x, int y) {
       maze[y1 * width + x1] = 0;
       maze[y2 * width + x2] = 0;
       x = x2; y = y2;
-      dir = random() % 4;
+      dir = random(10) % 4;
       count = 0;
     } else {
       dir = (dir + 1) % 4;
