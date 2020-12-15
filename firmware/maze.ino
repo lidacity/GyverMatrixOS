@@ -36,7 +36,7 @@ void newGameMaze() {
   makeHoles();   // дырявим несколько стен
   // GenerateMaze(maze, MAZE_WIDTH, MAZE_HEIGHT);    // генерировать лабиринт
 
-  if (!GAMEMODE) {
+  if (!(GAMEMODE || mazeMode)) {
     for (byte y = 0; y < HEIGHT; y++) {
       for (byte x = 0; x < WIDTH; x++) {
         switch (maze[(y + SHIFT) * MAZE_WIDTH + (x + SHIFT)]) {
@@ -73,6 +73,7 @@ void mazeRoutine() {
     FastLED.clear();
     loadingFlag = false;
     newGameMaze();
+    gamemodeFlag = true;
   }
 
   if (gameDemo) demoMaze();
@@ -134,7 +135,7 @@ void movePlayer(int8_t nowX, int8_t nowY, int8_t prevX, int8_t prevY) {
     }
     return;
   }
-  if (GAMEMODE) {
+  if (GAMEMODE || mazeMode) {
     for (int8_t y = nowY - FOV; y < nowY + FOV; y++) {
       for (int8_t x = nowX - FOV; x < nowX + FOV; x++) {
         if (x < 0 || x > WIDTH - 1 || y < 0 || y > WIDTH - 1) continue;

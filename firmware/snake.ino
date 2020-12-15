@@ -19,13 +19,12 @@ void snakeRoutine() {
     FastLED.clear();
     loadingFlag = false;
     newGameSnake();
+    gamemodeFlag = true;
   }
 
-  buttonsTick();
+  buttonsTick(); 
   
-  if (gameDemo) snakeDemo();
-  
-  if (gameTimer.isReady()) {
+  if (gameTimer.isReady()) {    
 
     // БЛОК ГЕНЕРАЦИИ ЯБЛОКА
     while (!apple_flag) {                         // пока яблоко не создано
@@ -95,6 +94,7 @@ void snakeRoutine() {
     drawPixelXY(headX, headY, GLOBAL_COLOR_1);
     FastLED.show();
   }
+  if (gameDemo) snakeDemo();
 
   // если он настал
   if (pizdetc) {
@@ -113,7 +113,7 @@ void snakeRoutine() {
     FastLED.clear();
     FastLED.show();
     FastLED.setBrightness(BRIGHTNESS);
-    if (!gameDemo) displayScore(snakeLength - START_LENGTH);
+    displayScore(snakeLength - START_LENGTH);
     delay(1000);
     FastLED.clear();
     FastLED.show();

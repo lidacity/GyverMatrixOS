@@ -1,4 +1,5 @@
-GTimer_ms gifTimer(D_GIF_SPEED);
+timerMinim gifTimer(D_GIF_SPEED);
+
 
 // подключаем внешние файлы с картинками
 //#include "bitmap2.h"
@@ -146,14 +147,21 @@ void loadImage(uint16_t (*frame)[WIDTH]) {
 
 // ********************* ОСНОВНОЙ ЦИКЛ РЕЖИМОВ *******************
 void customRoutine() {
-  if (!BTcontrol)
-    if (effectTimer.isReady()) customModes();                    // режимы крутятся, пиксели мутятся
+  if (!BTcontrol) {
+    if (!gamemodeFlag) {
+      if (effectTimer.isReady()) customModes();                    // режимы крутятся, пиксели мутятся
+    } else {
+      customModes();
+    }
+    btnsModeChange();
+  }
 
   if (idleState) {
     if (autoplayTimer.isReady() && AUTOPLAY) {    // таймер смены режима
       thisMode++;
       if (thisMode >= MODES_AMOUNT) thisMode = 0;
       loadingFlag = true;
+      gamemodeFlag = false;
       FastLED.clear();
       FastLED.show();
     }
@@ -172,4 +180,79 @@ void customRoutine() {
       FastLED.show();
     }
   }
+}
+
+
+void btnsModeChange() {
+#if (USE_BUTTONS == 1)
+  if (bt_set.clicked(&commonBtnTimer)) {
+    if (gamemodeFlag) gameDemo = !gameDemo;
+    if (gameDemo) {
+      gameSpeed = DEMO_GAME_SPEED;
+      gameTimer.setInterval(gameSpeed);
+      AUTOPLAY = false;
+    } else {
+      gameSpeed = D_GAME_SPEED;
+      gameTimer.setInterval(gameSpeed);
+      AUTOPLAY = false;
+    }
+  }
+  if (bt_set.holded(&commonBtnTimer)) {
+    mazeMode = !mazeMode;
+  }
+  if (gameDemo) {
+    if (bt_right.clicked(&commonBtnTimer)) {
+      autoplayTimer.reset();
+      thisMode++;
+      if (thisMode >= MODES_AMOUNT) thisMode = 0;
+      loadingFlag = true;
+      gamemodeFlag = false;
+      FastLED.clear();
+      FastLED.show();
+    }
+
+    if (bt_left.clicked(&commonBtnTimer)) {
+      autoplayTimer.reset();
+      thisMode--;
+      if (thisMode < 0) thisMode = MODES_AMOUNT - 1;
+      loadingFlag = true;
+      gamemodeFlag = false;
+      FastLED.clear();
+      FastLED.show();
+    }
+
+    if (bt_up.clicked(&commonBtnTimer)) {
+      AUTOPLAY = true;
+      autoplayTimer.reset();
+    }
+    if (bt_down.clicked(&commonBtnTimer)) {
+      AUTOPLAY = false;
+    }
+
+    if (bt_right.holded(&commonBtnTimer))
+      if (changeTimer.isReady()) {
+        effects_speed -= 2;
+        if (effects_speed < 30) effects_speed = 30;
+        effectTimer.setInterval(effects_speed);
+      }
+    if (bt_left.holded(&commonBtnTimer))
+      if (changeTimer.isReady()) {
+        effects_speed += 2;
+        if (effects_speed > 300) effects_speed = 300;
+        effectTimer.setInterval(effects_speed);
+      }
+    if (bt_up.holded(&commonBtnTimer))
+      if (changeTimer.isReady()) {
+        globalBrightness += 2;
+        if (globalBrightness > 255) globalBrightness = 255;
+        FastLED.setBrightness(globalBrightness);
+      }
+    if (bt_down.holded(&commonBtnTimer))
+      if (changeTimer.isReady()) {
+        globalBrightness -= 2;
+        if (globalBrightness < 0) globalBrightness = 0;
+        FastLED.setBrightness(globalBrightness);
+      }
+  }
+#endif
 }
