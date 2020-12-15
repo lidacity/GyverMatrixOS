@@ -21,6 +21,7 @@ void fillString(String text, uint32_t color) {
     offset = WIDTH;   // перемотка в правый край
     loadingFlag = false;    
     modeCode = 0;
+    fullTextFlag = false;
   }
   
   if (scrollTimer.isReady() || (!BTcontrol && !gamemodeFlag)) {

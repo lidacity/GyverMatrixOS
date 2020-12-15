@@ -3,6 +3,7 @@
 // ************************ НАСТРОЙКИ ************************
 #define SMOOTH_CHANGE 1     // плавная смена режимов через чёрный
 #define SHOW_FULL_TEXT 1    // не переключать режим, пока текст не покажется весь
+#define SHOW_TEXT_ONCE 1    // показывать бегущий текст только 1 раз
 
 // подключаем внешние файлы с картинками
 //#include "bitmap2.h"
@@ -55,11 +56,17 @@
 */
 
 // ************************* СВОЙ СПИСОК РЕЖИМОВ ************************
-// количество кастомных режимов (которые сами переключаются или кнопкой)
-#define MODES_AMOUNT 28
+// список можно менять, соблюдая его структуру. Можно удалять и добавлять эффекты, ставить их в
+// любой последовательности или вообще оставить ОДИН. Удалив остальные case и break. Cтруктура оч простая:
+// case <номер>: <эффект>;
+//  break;
+
+// не забудьте указать количество режимов для корректного переключения с последнего на первый
+#define MODES_AMOUNT 28   // количество кастомных режимов (которые переключаются сами или кнопкой)
 
 void customModes() {
   switch (thisMode) {
+
     case 0: fillString("КРАСНЫЙ", CRGB::Red);
       break;
     case 1: fillString("РАДУГА", 1);
@@ -116,6 +123,8 @@ void customModes() {
       break;
     case 27: clockRoutine();
       break;
+
+
   }
 
 }
@@ -266,9 +275,15 @@ void customRoutine() {
   }
 
   if (idleState) {
+    if (fullTextFlag && SHOW_TEXT_ONCE) {
+      fullTextFlag = false;
+      autoplayTimer = millis();
+      nextMode();
+    }
     if (millis() - autoplayTimer > autoplayTime && AUTOPLAY) {    // таймер смены режима
       if (modeCode == 0 && SHOW_FULL_TEXT) {    // режим текста
         if (fullTextFlag) {
+          fullTextFlag = false;
           autoplayTimer = millis();
           nextMode();
         }
