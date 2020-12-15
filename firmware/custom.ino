@@ -125,6 +125,7 @@ void customRoutine() {
       if (thisMode >= MODES_AMOUNT) thisMode = 0;
       loadingFlag = true;
       FastLED.clear();
+      FastLED.show();
     }
   } else {
     if (idleTimer.isReady()) {      // таймер холостого режима
@@ -138,6 +139,7 @@ void customRoutine() {
       loadingFlag = true;
       BTcontrol = false;
       FastLED.clear();
+      FastLED.show();
     }
   }
 }
