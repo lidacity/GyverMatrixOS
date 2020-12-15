@@ -1,11 +1,24 @@
+#pragma pack(push,1)
+typedef struct {
+  bool holdedFlag: 1;
+  bool btnFlag: 1;
+  bool pressF: 1;
+  bool clickF: 1;
+  bool holdF: 1;
+} buttonMinimFlags;
+#pragma pack(pop)
+
 class buttonMinim {
   public:
     buttonMinim(uint8_t pin);
-    boolean pressed(uint32_t* btnTimer);
-    boolean clicked(uint32_t* btnTimer);
-    boolean holded(uint32_t* btnTimer);
+    boolean pressed();
+    boolean clicked();
+    boolean holding();
+    boolean holded();
   private:
-    boolean _btnFlag;
+    buttonMinimFlags flags;
+    void tick();
+    uint32_t _btnTimer;
     byte _pin;
 };
 
@@ -14,43 +27,62 @@ buttonMinim::buttonMinim(uint8_t pin) {
   _pin = pin;
 }
 
-boolean buttonMinim::pressed(uint32_t* btnTimer) {
-  if (!digitalRead(_pin) && !_btnFlag && ((uint32_t)millis() - *btnTimer > 90)) {
-    _btnFlag = true;
-    *btnTimer = millis();
-    return true;
+void buttonMinim::tick() {
+  boolean btnState = digitalRead(_pin);
+  if (!btnState && !flags.btnFlag && ((uint32_t)millis() - _btnTimer > 90)) {
+    flags.btnFlag = true;
+    _btnTimer = millis();
+    flags.pressF = true;
+    flags.holdedFlag = true;
   }
-  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 350)) {
-    _btnFlag = false;
-    *btnTimer = millis();
+  if (btnState && flags.btnFlag && ((uint32_t)millis() - _btnTimer < 350)) {
+    flags.btnFlag = false;
+    _btnTimer = millis();
+    flags.clickF = true;
+    flags.holdF = false;
   }
-  return false;
+  if (flags.btnFlag && ((uint32_t)millis() - _btnTimer > 600)) {
+    if (!btnState) {
+      flags.holdF = true;
+    } else {
+      flags.btnFlag = false;
+      flags.holdF = false;
+      _btnTimer = millis();
+    }
+  }
 }
 
-boolean buttonMinim::clicked(uint32_t* btnTimer) {
-  if (!digitalRead(_pin) && !_btnFlag && ((uint32_t)millis() - *btnTimer > 90)) {
-    _btnFlag = true;
-    *btnTimer = millis();
-  }
-  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 350)) {
-    _btnFlag = false;
-    *btnTimer = millis();
+boolean buttonMinim::pressed() {
+  buttonMinim::tick();
+  if (flags.pressF) {
+    flags.pressF = false;
     return true;
   }
-  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer > 600)) {
-    _btnFlag = false;
-    *btnTimer = millis();
-  }
-  return false;
+  else return false;
 }
 
-boolean buttonMinim::holded(uint32_t* btnTimer) {
-  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer > 600)) {
-    _btnFlag = false;
-    *btnTimer = millis();
-  }
-  if (!digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer > 600)) {
+boolean buttonMinim::clicked() {
+  buttonMinim::tick();
+  if (flags.clickF) {
+    flags.clickF = false;
     return true;
   }
-  return false;
+  else return false;
+}
+
+boolean buttonMinim::holding() {
+  buttonMinim::tick();
+  if (flags.holdF) {
+    return true;
+  }
+  else return false;
+}
+
+boolean buttonMinim::holded() {
+  buttonMinim::tick();
+  if (flags.holdF && flags.holdedFlag) {
+    flags.holdedFlag = false;
+    return true;
+  }
+  else return false;
 }

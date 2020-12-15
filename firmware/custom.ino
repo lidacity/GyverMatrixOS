@@ -170,7 +170,7 @@ byte fadeMode = 4;
 boolean modeDir;
 #endif
 
-void nextMode() {
+static void nextMode() {
 #if (SMOOTH_CHANGE == 1)
   fadeMode = 0;
   modeDir = true;
@@ -178,7 +178,7 @@ void nextMode() {
   nextModeHandler();
 #endif
 }
-void prevMode() {
+static void prevMode() {
 #if (SMOOTH_CHANGE == 1)
   fadeMode = 0;
   modeDir = false;
@@ -239,13 +239,15 @@ void customRoutine() {
   if (!BTcontrol) {
     if (!gamemodeFlag) {
       if (effectTimer.isReady()) {
+#if (OVERLAY_CLOCK == 1 && USE_CLOCK == 1)
         if (!loadingFlag && !gamemodeFlag && needUnwrap() && modeCode != 0) clockOverlayUnwrap(CLOCK_X, CLOCK_Y);
         if (loadingFlag) loadFlag2 = true;
+#endif
 
         customModes();                // режимы крутятся, пиксели мутятся
 
-        if (!gamemodeFlag && modeCode != 0) clockOverlayWrap(CLOCK_X, CLOCK_Y);
 #if (OVERLAY_CLOCK == 1 && USE_CLOCK == 1)
+        if (!gamemodeFlag && modeCode != 0) clockOverlayWrap(CLOCK_X, CLOCK_Y);
         if (loadFlag2) {
           setOverlayColors();
           loadFlag2 = false;
@@ -292,10 +294,29 @@ void customRoutine() {
   }
 }
 
+void timeSet(boolean type, boolean dir) {    // type: 0-часы, 1-минуты, dir: 0-уменьшить, 1-увеличить
+  if (type) {
+    if (dir) hrs++;
+    else hrs--;
+  } else {
+    if (dir) mins++;
+    else mins--;
+    if (mins > 59) {
+      mins = 0;
+      hrs++;
+    }
+    if (mins < 0) {
+      mins = 59;
+      hrs--;
+    }
+  }
+  if (hrs > 23) hrs = 0;
+  if (hrs < 0) hrs = 23;
+}
 
 void btnsModeChange() {
 #if (USE_BUTTONS == 1)
-  if (bt_set.clicked(&commonBtnTimer)) {
+  if (bt_set.clicked()) {
     if (gamemodeFlag) gameDemo = !gameDemo;
     if (gameDemo) {
       gameSpeed = DEMO_GAME_SPEED;
@@ -307,53 +328,97 @@ void btnsModeChange() {
       AUTOPLAY = false;
     }
   }
-  if (bt_set.holded(&commonBtnTimer)) {
-    mazeMode = !mazeMode;
-  }
-  if (gameDemo) {
-    if (bt_right.clicked(&commonBtnTimer)) {
-      autoplayTimer = millis();
-      nextMode();
-    }
-
-    if (bt_left.clicked(&commonBtnTimer)) {
-      autoplayTimer = millis();
-      prevMode();
-    }
-
-    if (bt_up.clicked(&commonBtnTimer)) {
-      AUTOPLAY = true;
-      autoplayTimer = millis();
-    }
-    if (bt_down.clicked(&commonBtnTimer)) {
+  if (bt_set.holded()) {
+    if (modeCode == 2)
+      mazeMode = !mazeMode;
+    if (modeCode == 1) {    // вход в настройку часов
+      clockSet = !clockSet;
       AUTOPLAY = false;
+      secs = 0;
+#if (USE_CLOCK == 1)
+      if (!clockSet) rtc.adjust(DateTime(2014, 1, 21, hrs, mins, 0)); // установка нового времени в RTC
+#endif
+    }
+  }
+
+  // timeSet type: 0-часы, 1-минуты, dir: 0-уменьшить, 1-увеличить
+
+  if (gameDemo) {
+    if (bt_right.clicked()) {
+      if (!clockSet) {
+        autoplayTimer = millis();
+        nextMode();
+      } else {
+        timeSet(1, 1);
+      }
     }
 
-    if (bt_right.holded(&commonBtnTimer))
-      if (changeTimer.isReady()) {
-        effects_speed -= 2;
-        if (effects_speed < 30) effects_speed = 30;
-        effectTimer.setInterval(effects_speed);
+    if (bt_left.clicked()) {
+      if (!clockSet) {
+        autoplayTimer = millis();
+        prevMode();
+      } else {
+        timeSet(1, 0);
       }
-    if (bt_left.holded(&commonBtnTimer))
-      if (changeTimer.isReady()) {
-        effects_speed += 2;
-        if (effects_speed > 300) effects_speed = 300;
-        effectTimer.setInterval(effects_speed);
+    }
+
+    if (bt_up.clicked()) {
+      if (!clockSet) {
+        AUTOPLAY = true;
+        autoplayTimer = millis();
+      } else {
+        timeSet(0, 1);
       }
-    if (bt_up.holded(&commonBtnTimer))
-      if (changeTimer.isReady()) {
-        globalBrightness += 2;
-        if (globalBrightness > 255) globalBrightness = 255;
-        fadeBrightness = globalBrightness;
-        FastLED.setBrightness(globalBrightness);
+    }
+    if (bt_down.clicked()) {
+      if (!clockSet) {
+        AUTOPLAY = false;
+      } else {
+        timeSet(0, 0);
       }
-    if (bt_down.holded(&commonBtnTimer))
+    }
+
+    if (bt_right.holding())
       if (changeTimer.isReady()) {
-        globalBrightness -= 2;
-        if (globalBrightness < 0) globalBrightness = 0;
-        fadeBrightness = globalBrightness;
-        FastLED.setBrightness(globalBrightness);
+        if (!clockSet) {
+          effects_speed -= 2;
+          if (effects_speed < 30) effects_speed = 30;
+          effectTimer.setInterval(effects_speed);
+        } else {
+          timeSet(1, 1);
+        }
+      }
+    if (bt_left.holding())
+      if (changeTimer.isReady()) {
+        if (!clockSet) {
+          effects_speed += 2;
+          if (effects_speed > 300) effects_speed = 300;
+          effectTimer.setInterval(effects_speed);
+        } else {
+          timeSet(1, 0);
+        }
+      }
+    if (bt_up.holding())
+      if (changeTimer.isReady()) {
+        if (!clockSet) {
+          globalBrightness += 2;
+          if (globalBrightness > 255) globalBrightness = 255;
+          fadeBrightness = globalBrightness;
+          FastLED.setBrightness(globalBrightness);
+        } else {
+          timeSet(0, 1);
+        }
+      }
+    if (bt_down.holding())
+      if (changeTimer.isReady()) {
+        if (!clockSet) {
+          globalBrightness -= 2;
+          if (globalBrightness < 0) globalBrightness = 0;
+          fadeBrightness = globalBrightness;
+          FastLED.setBrightness(globalBrightness);
+        } else {
+          timeSet(0, 0);
+        }
       }
   }
 #endif

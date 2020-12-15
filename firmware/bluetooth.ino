@@ -139,13 +139,15 @@ void parsing() {
   if (recievedFlag) {      // если получены данные
     recievedFlag = false;
 
-    idleTimer.reset();
-    idleState = false;
+    if (intData[0] != 16) {
+      idleTimer.reset();
+      idleState = false;
 
-    if (!BTcontrol) {
-      gameSpeed = globalSpeed * 4;
-      gameTimer.setInterval(gameSpeed);
-      BTcontrol = true;
+      if (!BTcontrol) {
+        gameSpeed = globalSpeed * 4;
+        gameTimer.setInterval(gameSpeed);
+        BTcontrol = true;
+      }
     }
 
     switch (intData[0]) {
@@ -231,6 +233,15 @@ void parsing() {
         }
         if (effectsFlag) effectTimer.setInterval(globalSpeed);
         if (runningFlag) scrollTimer.setInterval(globalSpeed);
+        break;
+      case 16:
+        if (intData[1] == 0) AUTOPLAY = true;
+        else if (intData[1] == 1) AUTOPLAY = false;
+        else if (intData[1] == 2) prevMode();
+        else if (intData[1] == 3) nextMode();
+        break;
+      case 17: autoplayTime = ((long)intData[1] * 1000);
+        autoplayTimer = millis();
         break;
     }
     lastMode = intData[0];  // запомнить предыдущий режим

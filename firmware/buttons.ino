@@ -1,7 +1,6 @@
 
 #if (USE_BUTTONS == 1)
 #include "buttonMinim.h"
-uint32_t commonBtnTimer;
 
 buttonMinim bt_left(BUTT_RIGHT);
 buttonMinim bt_right(BUTT_LEFT);
@@ -15,36 +14,36 @@ timerMinim stepTimer(100);
 boolean checkButtons() {
 #if (USE_BUTTONS == 1)
   if (!gameDemo) {
-    if (bt_left.pressed(&commonBtnTimer)) {
+    if (bt_left.pressed()) {
       buttons = 3;
       controlFlag = true;
     }
-    if (bt_right.pressed(&commonBtnTimer)) {
+    if (bt_right.pressed()) {
       buttons = 1;
       controlFlag = true;
     }
-    if (bt_up.pressed(&commonBtnTimer)) {
+    if (bt_up.pressed()) {
       buttons = 0;
       controlFlag = true;
     }
-    if (bt_down.pressed(&commonBtnTimer)) {
+    if (bt_down.pressed()) {
       if (stepTimer.isReady())
         buttons = 2;
     }
 
-    if (bt_left.holded(&commonBtnTimer)) {
+    if (bt_left.holding()) {
       if (stepTimer.isReady())
         buttons = 3;
     }
-    if (bt_right.holded(&commonBtnTimer)) {
+    if (bt_right.holding()) {
       if (stepTimer.isReady())
         buttons = 1;
     }
-    if (bt_up.holded(&commonBtnTimer)) {
+    if (bt_up.holding()) {
       if (stepTimer.isReady())
         buttons = 0;
     }
-    if (bt_down.holded(&commonBtnTimer)) {
+    if (bt_down.holding()) {
       if (stepTimer.isReady())
         buttons = 2;
     }

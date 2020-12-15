@@ -1,7 +1,7 @@
 // режим часов
 
 // ****************** НАСТРОЙКИ ЧАСОВ *****************
-#define OVERLAY_CLOCK 1     // часы на фоне всех эффектов и игр. Жрёт SRAM память!
+#define OVERLAY_CLOCK 0     // часы на фоне всех эффектов и игр. Жрёт SRAM память!
 #define CLOCK_ORIENT 0      // 0 горизонтальные, 1 вертикальные
 #define CLOCK_X 0           // позиция часов по X (начало координат - левый нижний угол)
 #define CLOCK_Y 6           // позиция часов по Y (начало координат - левый нижний угол)
@@ -84,8 +84,19 @@ void clockRoutine() {
     loadingFlag = false;
     modeCode = 1;
   }
-  clockTicker();
-  drawClock(hrs, mins, dotFlag, CLOCK_X, CLOCK_Y);
+  
+  FastLED.clear();
+  if (!clockSet) {
+    clockTicker();
+    drawClock(hrs, mins, dotFlag, CLOCK_X, CLOCK_Y);
+  } else {
+    if (halfsecTimer.isReady()) {      
+      dotFlag = !dotFlag;
+      if (dotFlag) clockColor();
+      else for (byte i = 0; i < 5; i++) clockLED[i].fadeToBlackBy(190);
+    }
+    drawClock(hrs, mins, 1, CLOCK_X, CLOCK_Y);
+  }
 }
 
 void clockTicker() {
