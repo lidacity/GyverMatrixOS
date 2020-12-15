@@ -10,7 +10,7 @@ typedef struct {
 
 class buttonMinim {
   public:
-    buttonMinim(uint8_t pin);
+    buttonMinim(uint8_t pin, boolean type);   // type true - pullDOWN, false - input pullUP
     boolean pressed();
     boolean clicked();
     boolean holding();
@@ -20,15 +20,19 @@ class buttonMinim {
     void tick();
     uint32_t _btnTimer;
     byte _pin;
+    boolean _type;
 };
 
-buttonMinim::buttonMinim(uint8_t pin) {
-  pinMode(pin, INPUT_PULLUP);
+buttonMinim::buttonMinim(uint8_t pin, boolean type) {  
   _pin = pin;
+  _type = type;
+  if (!_type) pinMode(_pin, INPUT_PULLUP);
+  else pinMode(_pin, INPUT);
 }
 
 void buttonMinim::tick() {
-  boolean btnState = digitalRead(_pin);
+  boolean btnState = digitalRead(_pin) ^ _type;
+  
   if (!btnState && !flags.btnFlag && ((uint32_t)millis() - _btnTimer > 90)) {
     flags.btnFlag = true;
     _btnTimer = millis();
