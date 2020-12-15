@@ -127,8 +127,8 @@ void rainbowRoutine() {
   hue += 3;
   for (byte i = 0; i < WIDTH; i++) {
     CHSV thisColor = CHSV((byte)(hue + i * float(255 / WIDTH)), 255, 255);
-    for (byte j = 0; j < HEIGHT; j++)
-      leds[getPixelNumber(i, j)] = thisColor;
+    for (byte j = 0; j < HEIGHT; j++)      
+      drawPixelXY(i, j, thisColor);   //leds[getPixelNumber(i, j)] = thisColor;
   }
 }
 
@@ -138,8 +138,8 @@ void rainbowDiagonalRoutine() {
   hue += 3;
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
-      CHSV thisColor = CHSV((byte)(hue + (float)(WIDTH / HEIGHT * x + y) * (float)(255 / maxDim)), 255, 255);
-      leds[getPixelNumber(x, y)] = thisColor;
+      CHSV thisColor = CHSV((byte)(hue + (float)(WIDTH / HEIGHT * x + y) * (float)(255 / maxDim)), 255, 255);      
+      drawPixelXY(x, y, thisColor); //leds[getPixelNumber(i, j)] = thisColor;
     }
   }
 }
@@ -151,7 +151,7 @@ void rainbowColorsRoutine() {
   for (byte i = 0; i < WIDTH; i++) {
     CHSV thisColor = CHSV((byte)(hue + i * float(255 / WIDTH)), 255, 255);
     for (byte j = 0; j < HEIGHT; j++)
-      if (getPixColor(getPixelNumber(i, j)) > 0) leds[getPixelNumber(i, j)] = thisColor;
+      if (getPixColor(getPixelNumber(i, j)) > 0) drawPixelXY(i, j, thisColor);
   }
 }
 
