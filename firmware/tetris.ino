@@ -1,5 +1,5 @@
 //игра  тетрис!
-
+#if (USE_TETRIS == 1)
 // **************** НАСТРОЙКИ ****************
 #define FAST_SPEED 20     // скорость падения при удержании "вниз" (меньше - быстрее)
 #define STEER_SPEED 40    // скорость перемещения в бок при удержании кнопки (меньше - быстрее) на BT версии не работает!
@@ -224,12 +224,11 @@ void gameOver() {
 // новый раунд
 void newGameTetris() {
   Serial.println("lolkek");   // без этого работает некорректно! магия ебаная
-  randomSeed(millis());
   delay(10);
   buttons = 4;
   height = HEIGHT;    // высота = высоте матрицы
   pos = WIDTH / 2;    // фигура появляется в середине
-  fig = random(7);    // выбираем слулчайн фигуру
+  fig = random(7);    // выбираем слулчайно фигуру
   ang = random(4);    // и угол поворота
   //color = colors[random(6)];      // случайный цвет
 
@@ -240,7 +239,7 @@ void newGameTetris() {
   if (gameDemo) pos = random(1, WIDTH - 1);
 
   // возвращаем обычную скорость падения
-  gameTimer.setInterval(globalSpeed * 4);
+  gameTimer.setInterval(gameSpeed);
   down_flag = false;  // разрешаем ускорять кнопкой "вниз"
   delay(10);
 }
@@ -360,3 +359,9 @@ void drawFigure(byte figure, byte angle, byte x, byte y, uint32_t color) {
     drawPixelXY(X, Y, color);
   }
 }
+
+#elif (USE_TETRIS == 0)
+void tetrisRoutine() {
+  return;
+}
+#endif

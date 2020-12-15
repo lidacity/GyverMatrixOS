@@ -1,5 +1,5 @@
 // игра змейка!
-
+#if (USE_SNAKE == 1)
 // **************** НАСТРОЙКИ ****************
 #define START_LENGTH 4    // начальная длина змейки
 #define MAX_LENGTH 80     // максимальная длина змейки
@@ -22,9 +22,9 @@ void snakeRoutine() {
   }
 
   buttonsTick();
-
+  
   if (gameDemo) snakeDemo();
-
+  
   if (gameTimer.isReady()) {
 
     // БЛОК ГЕНЕРАЦИИ ЯБЛОКА
@@ -147,14 +147,21 @@ void snakeDemo() {
 
   if (nextX < 0 || nextX > WIDTH - 1 || nextY < 0        // проверка на столкновение со стеной
       || nextY > HEIGHT - 1) {
-    // поворачиваем направо
+        
+    // поворачиваем направо в обычном случае или налево в углу
     if (vectorX > 0) buttons = 2;
+    if (vectorX > 0 && headY == 0) buttons = 0;
+    
+    if (vectorX < 0 && headY == HEIGHT - 1) buttons = 2;
     if (vectorX < 0) buttons = 0;
+    
     if (vectorY > 0) buttons = 1;
+    if (vectorY > 0 && headX == WIDTH - 1) buttons = 3;
+    
+    if (vectorY < 0 && headX == 0) buttons = 1;
     if (vectorY < 0) buttons = 3;
     return;
   }
-
 }
 
 void buttonsTick() {
@@ -207,3 +214,9 @@ void newGameSnake() {
   missDelete = false;
   apple_flag = false;
 }
+
+#elif (USE_SNAKE == 0)
+void snakeRoutine() {
+  return;
+}
+#endif

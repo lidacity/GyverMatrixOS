@@ -23,6 +23,9 @@
 #define TAIL_STEP 30      // длина хвоста кометы
 #define SATURATION 150    // насыщенность кометы (от 0 до 255)
 
+// эффект конфетти
+#define DENSE 3           // плотность конфетти
+
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
 
 // *********** "дыхание" яркостью ***********
@@ -48,7 +51,7 @@ void brightnessRoutine() {
 byte hue;
 void colorsRoutine() {
   if (effectTimer.isReady()) {
-    hue += 2;
+    hue += 4;
     for (int i = 0; i < NUM_LEDS; i++) {
       if (getPixColor(i) > 0) leds[i] = CHSV(hue, 255, 255);
     }
@@ -86,7 +89,7 @@ void ballRoutine() {
     if (loadingFlag) {
       for (byte i = 0; i < 2; i++) {
         coordB[i] = WIDTH / 2 * 10;
-        vectorB[i] = random(3, 8);
+        vectorB[i] = random(8, 20);
         ballColor = CHSV(random(0, 9) * 28, 255, 255);
       }
       loadingFlag = false;
@@ -122,7 +125,7 @@ void ballRoutine() {
 // *********** радуга заливка ***********
 void rainbowRoutine() {
   if (effectTimer.isReady()) {
-    hue++;
+    hue += 3;
     for (byte i = 0; i < WIDTH; i++) {
       CHSV thisColor = CHSV((byte)(hue + i * float(255 / WIDTH)), 255, 255);
       for (byte j = 0; j < HEIGHT; j++)
@@ -487,3 +490,17 @@ void starfallRoutine() {
     }
   }
 }
+
+// рандомные гаснущие вспышки
+void sparklesRoutine() {
+  if (effectTimer.isReady()) {
+    for (byte i = 0; i < DENSE; i++) {
+      byte x = random(0, WIDTH);
+      byte y = random(0, HEIGHT);
+      if (getPixColorXY(x, y) == 0)
+        leds[getPixelNumber(x, y)] = CHSV(random(0, 255), 255, 255);
+    }
+    fader();
+  }
+}
+

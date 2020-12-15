@@ -22,9 +22,9 @@ boolean parseStarted;
 void bluetoothRoutine() {
   parsing();                           // принимаем данные
 
-  if (!parseStarted) {                // на время принятия данных матрицу не обновляем!
+  if (!parseStarted && BTcontrol) {                // на время принятия данных матрицу не обновляем!
 
-    if (runningFlag) fillString(runningText);   // бегущая строка
+    if (runningFlag) fillString(runningText, globalColor);   // бегущая строка
     if (gameFlag) games();                      // игры
     if (effectsFlag) effects();                 // эффекты
   }
@@ -56,6 +56,8 @@ void effects() {
       break;
     case 10: starfallRoutine();
       break;
+	  case 11: sparklesRoutine();
+      break;
   }
   FastLED.show();
 }
@@ -64,27 +66,12 @@ void effects() {
 void games() {
   switch (game) {
     case 0:
-      if (loadingFlag) {
-        FastLED.clear();
-        loadingFlag = false;
-        newGameSnake();
-      }
       snakeRoutine();
       break;
     case 1:
-      if (loadingFlag) {
-        FastLED.clear();
-        loadingFlag = false;
-        newGameTetris();
-      }
       tetrisRoutine();
       break;
     case 2:
-      if (loadingFlag) {
-        FastLED.clear();
-        loadingFlag = false;
-        newGameMaze();
-      }
       mazeRoutine();
       break;
   }
@@ -93,6 +80,7 @@ void games() {
 byte index;
 String string_convert = "";
 enum modes {NORMAL, COLOR, TEXT} parseMode;
+
 
 // ********************* ПРИНИМАЕМ ДАННЫЕ **********************
 void parsing() {
@@ -120,8 +108,15 @@ void parsing() {
   */
   if (recievedFlag) {      // если получены данные
     recievedFlag = false;
-    BTcontrol = true;
+
     idleTimer.reset();
+    idleState = false;
+    
+    if (!BTcontrol) {
+      gameSpeed = globalSpeed * 4;
+      gameTimer.setInterval(gameSpeed);
+      BTcontrol = true;
+    }
 
     switch (intData[0]) {
       case 1:
@@ -177,25 +172,33 @@ void parsing() {
         //gameFlag = true;
         game = intData[1];
         globalSpeed = intData[2];
-        gameTimer.setInterval(globalSpeed * 4);
+        gameSpeed = globalSpeed * 4;
+        gameTimer.setInterval(gameSpeed);
         break;
       case 10:
         buttons = 0;
+        controlFlag = true;
         break;
       case 11:
         buttons = 1;
+        controlFlag = true;
         break;
       case 12:
         buttons = 2;
+        controlFlag = true;
         break;
       case 13:
         buttons = 3;
+        controlFlag = true;
         break;
       case 14:
         gameFlag = !gameFlag;
         break;
       case 15: globalSpeed = intData[1];
-        if (gameFlag) gameTimer.setInterval(globalSpeed * 4);   // для игр скорость нужно меньше!
+        if (gameFlag) {
+          gameSpeed = globalSpeed * 4;      // для игр скорость нужно меньше!
+          gameTimer.setInterval(gameSpeed);
+        }
         if (effectsFlag) effectTimer.setInterval(globalSpeed);
         if (runningFlag) scrollTimer.setInterval(globalSpeed);
         break;

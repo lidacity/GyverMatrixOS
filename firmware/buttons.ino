@@ -1,3 +1,4 @@
+
 #if (USE_BUTTONS == 1)
 #include "GyverButton.h"
 GButton bt_left(BUTT_RIGHT);
@@ -7,7 +8,7 @@ GButton bt_down(BUTT_DOWN);
 #endif
 
 boolean checkButtons() {
-  boolean clicks = false;
+  
 #if (USE_BUTTONS == 1)
   bt_left.tick();
   bt_right.tick();
@@ -16,34 +17,34 @@ boolean checkButtons() {
 
   if (bt_left.isPress()) {
     buttons = 3;
-    clicks = true;
-    return true;
+    controlFlag = true;
   }
   if (bt_right.isPress()) {
     buttons = 1;
-    clicks = true;
-    return true;
+    controlFlag = true;
   }
   if (bt_up.isPress()) {
     buttons = 0;
-    clicks = true;
-    return true;
+    controlFlag = true;
   }
   if (bt_down.isPress()) {
     buttons = 2;
-    clicks = true;
-    return true;
+    controlFlag = true;
   }
 #endif
 
   // если нажали кнопку, возврат к обычному режиму
-  if (clicks) {
+  if (controlFlag) {
+    controlFlag = false;    
+    
     idleTimer.reset();
-    gameDemo = false;
     idleState = false;
-    BTcontrol = false;    // перехват управления
+    
+    gameDemo = false;
+    return true;
   }
-
+  
   if (buttons != 4) return true;
+  
   return false;
 }

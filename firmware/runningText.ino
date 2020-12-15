@@ -16,7 +16,7 @@
 
 int offset = WIDTH;
 
-void fillString(String text) {
+void fillString(String text, uint32_t color) {
   if (loadingFlag) {
     offset = WIDTH;   // перемотка в правый край
     loadingFlag = false;
@@ -28,7 +28,7 @@ void fillString(String text) {
       if ((byte)text[i] > 191) {    // работаем с русскими буквами!
         i++;
       } else {
-        drawLetter(text[i], offset + j * (LET_WIDTH + SPACE));
+        drawLetter(j, text[i], offset + j * (LET_WIDTH + SPACE), color);
         i++;
         j++;
       }
@@ -42,8 +42,12 @@ void fillString(String text) {
   }
 }
 
-void drawLetter(uint8_t letter, int16_t offset) {
+void drawLetter(uint8_t index, uint8_t letter, int16_t offset, uint32_t color) {
   int8_t start_pos = 0, finish_pos = LET_WIDTH;
+  CRGB letterColor;
+  if (color == 1) letterColor = CHSV(byte(offset * 10), 255, 255);
+  else if (color == 2) letterColor = CHSV(byte(index * 30), 255, 255);
+  else letterColor = color;
 
   if (offset < -LET_WIDTH || offset > WIDTH) return;
   if (offset < 0) start_pos = -offset;
@@ -62,10 +66,10 @@ void drawLetter(uint8_t letter, int16_t offset) {
 
       // рисуем столбец (i - горизонтальная позиция, j - вертикальная)
       if (TEXT_DIRECTION) {
-        if (thisBit) drawPixelXY(offset + i, TEXT_HEIGHT + j, globalColor);
+        if (thisBit) leds[getPixelNumber(offset + i, TEXT_HEIGHT + j)] = letterColor;
         else drawPixelXY(offset + i, TEXT_HEIGHT + j, 0x000000);
       } else {
-        if (thisBit) drawPixelXY(i, offset + TEXT_HEIGHT + j, globalColor);
+        if (thisBit) leds[getPixelNumber(i, offset + TEXT_HEIGHT + j)] = letterColor;
         else drawPixelXY(i, offset + TEXT_HEIGHT + j, 0x000000);
       }
 
@@ -87,7 +91,7 @@ uint8_t getFont(uint8_t font, uint8_t row) {
 }
 
 #elif (USE_FONTS == 0)
-void fillString(String text) {
+void fillString(String text, uint32_t color) {
   return;
 }
 #endif
