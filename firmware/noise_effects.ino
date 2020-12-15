@@ -1,6 +1,6 @@
 // крутые полноэкраные эффекты
 // ******************* НАСТРОЙКИ *****************
-// "масштаб" эффектов. Чем больше, тем крупнее!
+// "масштаб" эффектов. Чем меньше, тем крупнее!
 #define MADNESS_SCALE 100
 #define CLOUD_SCALE 30
 #define LAVA_SCALE 50
@@ -37,6 +37,7 @@ void madnessNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     scale = MADNESS_SCALE;
+    modeCode = 3;
   }
   fillnoise8();
   for (int i = 0; i < WIDTH; i++) {
@@ -54,6 +55,7 @@ void rainbowNoise() {
     loadingFlag = false;
     currentPalette = RainbowColors_p;
     scale = RAINBOW_SCALE; colorLoop = 1;
+    modeCode = 7;
   }
   fillNoiseLED();
 }
@@ -62,6 +64,7 @@ void rainbowStripeNoise() {
     loadingFlag = false;
     currentPalette = RainbowStripeColors_p;
     scale = RAINBOW_S_SCALE; colorLoop = 1;
+    modeCode = 8;
   }
   fillNoiseLED();
 }
@@ -76,6 +79,7 @@ void zebraNoise() {
     currentPalette[8] = CRGB::White;
     currentPalette[12] = CRGB::White;
     scale = ZEBRA_SCALE; colorLoop = 1;
+    modeCode = 9;
   }
   fillNoiseLED();
 }
@@ -84,6 +88,7 @@ void forestNoise() {
     loadingFlag = false;
     currentPalette = ForestColors_p;
     scale = FOREST_SCALE; colorLoop = 0;
+    modeCode = 10;
   }
   fillNoiseLED();
 }
@@ -92,6 +97,7 @@ void oceanNoise() {
     loadingFlag = false;
     currentPalette = OceanColors_p;
     scale = OCEAN_SCALE; colorLoop = 0;
+    modeCode = 11;
   }
 
   fillNoiseLED();
@@ -101,6 +107,7 @@ void plasmaNoise() {
     loadingFlag = false;
     currentPalette = PartyColors_p;
     scale = PLASMA_SCALE; colorLoop = 1;
+    modeCode = 6;
   }
   fillNoiseLED();
 }
@@ -109,6 +116,7 @@ void cloudNoise() {
     loadingFlag = false;
     currentPalette = CloudColors_p;
     scale = CLOUD_SCALE; colorLoop = 0;
+    modeCode = 4;
   }
   fillNoiseLED();
 }
@@ -117,6 +125,7 @@ void lavaNoise() {
     loadingFlag = false;
     currentPalette = LavaColors_p;
     scale = LAVA_SCALE; colorLoop = 0;
+    modeCode = 5;
   }
   fillNoiseLED();
 }

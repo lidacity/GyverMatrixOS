@@ -19,9 +19,11 @@ int offset = WIDTH;
 void fillString(String text, uint32_t color) {
   if (loadingFlag) {
     offset = WIDTH;   // перемотка в правый край
-    loadingFlag = false;
+    loadingFlag = false;    
+    modeCode = 0;
   }
-  if (scrollTimer.isReady()) {
+  
+  if (scrollTimer.isReady() || (!BTcontrol && !gamemodeFlag)) {
     FastLED.clear();
     byte i = 0, j = 0;
     while (text[i] != '\0') {
@@ -33,10 +35,12 @@ void fillString(String text, uint32_t color) {
         j++;
       }
     }
+    fullTextFlag = false;
 
     offset--;
     if (offset < -j * (LET_WIDTH + SPACE)) {    // строка убежала
-      offset = WIDTH;
+      offset = WIDTH + 3;
+      fullTextFlag = true;
     }
     FastLED.show();
   }
@@ -92,6 +96,8 @@ uint8_t getFont(uint8_t font, uint8_t row) {
 
 #elif (USE_FONTS == 0)
 void fillString(String text, uint32_t color) {
+  fullTextFlag = false;
+  modeCode = 0;
   return;
 }
 #endif

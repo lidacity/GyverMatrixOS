@@ -22,7 +22,7 @@ boolean buttonMinim::pressed(uint32_t* btnTimer) {
   }
   if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 400)) {
     _btnFlag = false;
-    *btnTimer = millis();    
+    *btnTimer = millis();
   }
   return false;
 }

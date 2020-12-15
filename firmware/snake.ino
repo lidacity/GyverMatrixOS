@@ -22,9 +22,9 @@ void snakeRoutine() {
     gamemodeFlag = true;
   }
 
-  buttonsTick(); 
-  
-  if (gameTimer.isReady()) {    
+  buttonsTick();
+
+  if (gameTimer.isReady()) {
 
     // БЛОК ГЕНЕРАЦИИ ЯБЛОКА
     while (!apple_flag) {                         // пока яблоко не создано
@@ -147,17 +147,17 @@ void snakeDemo() {
 
   if (nextX < 0 || nextX > WIDTH - 1 || nextY < 0        // проверка на столкновение со стеной
       || nextY > HEIGHT - 1) {
-        
+
     // поворачиваем направо в обычном случае или налево в углу
     if (vectorX > 0) buttons = 2;
     if (vectorX > 0 && headY == 0) buttons = 0;
-    
+
     if (vectorX < 0 && headY == HEIGHT - 1) buttons = 2;
     if (vectorX < 0) buttons = 0;
-    
+
     if (vectorY > 0) buttons = 1;
     if (vectorY > 0 && headX == WIDTH - 1) buttons = 3;
-    
+
     if (vectorY < 0 && headX == 0) buttons = 1;
     if (vectorY < 0) buttons = 3;
     return;

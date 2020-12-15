@@ -33,7 +33,7 @@ boolean checkButtons() {
 #endif
 
   // если нажали кнопку, возврат к обычному режиму
-  if (controlFlag) {    
+  if (controlFlag) {
     idleTimer.reset();
     controlFlag = false;
     idleState = false;

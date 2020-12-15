@@ -223,7 +223,7 @@ void gameOver() {
 }
 
 // новый раунд
-void newGameTetris() {  
+void newGameTetris() {
   Serial.println("lolkek");   // без этого работает некорректно! магия ебаная
   delay(10);
   buttons = 4;

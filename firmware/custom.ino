@@ -1,10 +1,17 @@
-timerMinim gifTimer(D_GIF_SPEED);
+// свой список режимов
 
+// ************************ НАСТРОЙКИ ************************
+#define SMOOTH_CHANGE 1     // плавная смена режимов через чёрный
+#define SHOW_FULL_TEXT 1    // не переключать режим, пока текст не покажется весь
 
 // подключаем внешние файлы с картинками
 //#include "bitmap2.h"
 
+
 /*
+   Режимы:
+    clockRoutine();       // часы на чёрном фоне
+
    Эффекты:
     sparklesRoutine();    // случайные цветные гаснущие вспышки
     snowRoutine();        // снег
@@ -44,9 +51,9 @@ timerMinim gifTimer(D_GIF_SPEED);
 
 */
 
-// ************** СВОЙ СПИСОК РЕЖИМОВ **************
+// ************************* СВОЙ СПИСОК РЕЖИМОВ ************************
 // количество кастомных режимов (которые сами переключаются или кнопкой)
-#define MODES_AMOUNT 24
+#define MODES_AMOUNT 25
 
 void customModes() {
   switch (thisMode) {
@@ -98,8 +105,10 @@ void customModes() {
       break;
     case 23: mazeRoutine();
       break;
+    case 24: clockRoutine();
+      break;
   }
-  FastLED.show();
+
 }
 
 // функция загрузки картинки в матрицу. должна быть здесь, иначе не работает =)
@@ -112,6 +121,7 @@ void loadImage(uint16_t (*frame)[WIDTH]) {
   // 2) expandColor - расширяем цвет до 24 бит (спасибо adafruit)
   // 3) gammaCorrection - проводим коррекцию цвета для более корректного отображения
 }
+timerMinim gifTimer(D_GIF_SPEED);
 
 // ********************** ПРИМЕРЫ ВЫВОДА КАРТИНОК ***********************
 
@@ -146,29 +156,120 @@ void loadImage(uint16_t (*frame)[WIDTH]) {
 */
 
 // ********************* ОСНОВНОЙ ЦИКЛ РЕЖИМОВ *******************
+#if (SMOOTH_CHANGE == 1)
+byte fadeMode = 4;
+boolean modeDir;
+#endif
+
+void nextMode() {
+#if (SMOOTH_CHANGE == 1)
+  fadeMode = 0;
+  modeDir = true;
+#else
+  nextModeHandler();
+#endif
+}
+void prevMode() {
+#if (SMOOTH_CHANGE == 1)
+  fadeMode = 0;
+  modeDir = false;
+#else
+  prevModeHandler();
+#endif
+}
+void nextModeHandler() {
+  thisMode++;
+  if (thisMode >= MODES_AMOUNT) thisMode = 0;
+  loadingFlag = true;
+  gamemodeFlag = false;
+  FastLED.clear();
+  FastLED.show();
+}
+void prevModeHandler() {
+  thisMode--;
+  if (thisMode < 0) thisMode = MODES_AMOUNT - 1;
+  loadingFlag = true;
+  gamemodeFlag = false;
+  FastLED.clear();
+  FastLED.show();
+}
+
+int fadeBrightness;
+#if (SMOOTH_CHANGE == 1)
+void modeFader() {
+  if (fadeMode == 0) {
+    fadeMode = 1;
+  } else if (fadeMode == 1) {
+    if (changeTimer.isReady()) {
+      fadeBrightness -= 40;
+      if (fadeBrightness < 0) {
+        fadeBrightness = 0;
+        fadeMode = 2;
+      }
+      FastLED.setBrightness(fadeBrightness);
+    }
+  } else if (fadeMode == 2) {
+    fadeMode = 3;
+    if (modeDir) nextModeHandler();
+    else prevModeHandler();
+  } else if (fadeMode == 3) {
+    if (changeTimer.isReady()) {
+      fadeBrightness += 40;
+      if (fadeBrightness > globalBrightness) {
+        fadeBrightness = globalBrightness;
+        fadeMode = 4;
+      }
+      FastLED.setBrightness(fadeBrightness);
+    }
+  }
+}
+#endif
+
+boolean loadFlag2;
 void customRoutine() {
   if (!BTcontrol) {
     if (!gamemodeFlag) {
-      if (effectTimer.isReady()) customModes();                    // режимы крутятся, пиксели мутятся
+      if (effectTimer.isReady()) {
+        if (!loadingFlag && !gamemodeFlag && needUnwrap() && modeCode != 0) clockOverlayUnwrap(CLOCK_X, CLOCK_Y);
+        if (loadingFlag) loadFlag2 = true;
+        
+        customModes();                // режимы крутятся, пиксели мутятся
+        
+        if (!gamemodeFlag && modeCode != 0) clockOverlayWrap(CLOCK_X, CLOCK_Y);
+#if (OVERLAY_CLOCK == 1 && USE_CLOCK == 1)
+        if (loadFlag2) {
+          setOverlayColors();
+          loadFlag2 = false;
+        }
+#endif
+        loadingFlag = false;
+        FastLED.show();
+      }
     } else {
       customModes();
     }
     btnsModeChange();
+#if (SMOOTH_CHANGE == 1)
+    modeFader();
+#endif
   }
 
   if (idleState) {
-    if (autoplayTimer.isReady() && AUTOPLAY) {    // таймер смены режима
-      thisMode++;
-      if (thisMode >= MODES_AMOUNT) thisMode = 0;
-      loadingFlag = true;
-      gamemodeFlag = false;
-      FastLED.clear();
-      FastLED.show();
+    if (millis() - autoplayTimer > autoplayTime && AUTOPLAY) {    // таймер смены режима
+      if (modeCode == 0 && SHOW_FULL_TEXT) {    // режим текста
+        if (fullTextFlag) {
+          autoplayTimer = millis();
+          nextMode();
+        }
+      } else {
+        autoplayTimer = millis();
+        nextMode();
+      }
     }
   } else {
     if (idleTimer.isReady()) {      // таймер холостого режима
       idleState = true;
-      autoplayTimer.reset();
+      autoplayTimer = millis();
       gameDemo = true;
 
       gameSpeed = DEMO_GAME_SPEED;
@@ -202,28 +303,18 @@ void btnsModeChange() {
   }
   if (gameDemo) {
     if (bt_right.clicked(&commonBtnTimer)) {
-      autoplayTimer.reset();
-      thisMode++;
-      if (thisMode >= MODES_AMOUNT) thisMode = 0;
-      loadingFlag = true;
-      gamemodeFlag = false;
-      FastLED.clear();
-      FastLED.show();
+      autoplayTimer = millis();
+      nextMode();
     }
 
     if (bt_left.clicked(&commonBtnTimer)) {
-      autoplayTimer.reset();
-      thisMode--;
-      if (thisMode < 0) thisMode = MODES_AMOUNT - 1;
-      loadingFlag = true;
-      gamemodeFlag = false;
-      FastLED.clear();
-      FastLED.show();
+      autoplayTimer = millis();
+      prevMode();
     }
 
     if (bt_up.clicked(&commonBtnTimer)) {
       AUTOPLAY = true;
-      autoplayTimer.reset();
+      autoplayTimer = millis();
     }
     if (bt_down.clicked(&commonBtnTimer)) {
       AUTOPLAY = false;
@@ -245,12 +336,14 @@ void btnsModeChange() {
       if (changeTimer.isReady()) {
         globalBrightness += 2;
         if (globalBrightness > 255) globalBrightness = 255;
+        fadeBrightness = globalBrightness;
         FastLED.setBrightness(globalBrightness);
       }
     if (bt_down.holded(&commonBtnTimer))
       if (changeTimer.isReady()) {
         globalBrightness -= 2;
         if (globalBrightness < 0) globalBrightness = 0;
+        fadeBrightness = globalBrightness;
         FastLED.setBrightness(globalBrightness);
       }
   }

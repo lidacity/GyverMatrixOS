@@ -9,7 +9,7 @@
 */
 
 // GyverMatrixOS
-// Версия прошивки 1.5, совместима с приложением GyverMatrixBT версии 1.8 и выше
+// Версия прошивки 1.6, совместима с приложением GyverMatrixBT версии 1.8 и выше
 
 // ******************************** НАСТРОЙКИ ********************************
 // чем больше матрица и количество частиц (эффекты), тем выше шанс того, что всё зависнет!
@@ -30,13 +30,13 @@
 
 // ******************** ЭФФЕКТЫ И РЕЖИМЫ ********************
 #define D_TEXT_SPEED 100      // скорость бегущего текста по умолчанию (мс)
-#define D_EFFECT_SPEED 100    // скорость эффектов по умолчанию (мс) 
+#define D_EFFECT_SPEED 80     // скорость эффектов по умолчанию (мс) 
 #define D_GAME_SPEED 250      // скорость игр по умолчанию (мс)
 #define D_GIF_SPEED 80        // скорость гифок (мс)
 #define DEMO_GAME_SPEED 60    // скорость игр в демо режиме (мс)
 
 boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическую смену режимов
-#define AUTOPLAY_PERIOD 10    // время между авто сменой режимов (секунды)
+#define AUTOPLAY_PERIOD 15    // время между авто сменой режимов (секунды)
 #define IDLE_TIME 10          // время бездействия кнопок или Bluetooth (в секундах) после которого запускается автосмена режимов и демо в играх
 
 #define GLOBAL_COLOR_1 CRGB::Green    // основной цвет №1 для игр
@@ -48,6 +48,7 @@ boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическу
 #define FONT_TYPE 1           // (0 / 1) два вида маленького шрифта в выводе игрового счёта
 
 // ****************** ПИНЫ ПОДКЛЮЧЕНИЯ *******************
+
 #define LED_PIN 6           // пин ленты
 
 #define BUTT_UP 3           // кнопка вверх
@@ -56,11 +57,22 @@ boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическу
 #define BUTT_RIGHT 2        // кнопка вправо
 #define BUTT_SET 7          // кнопка выбор/игра
 
+/*
+  #define LED_PIN 5           // пин ленты
+
+  #define BUTT_UP 0           // кнопка вверх
+  #define BUTT_DOWN 2         // кнопка вниз
+  #define BUTT_LEFT 14         // кнопка влево
+  #define BUTT_RIGHT 12        // кнопка вправо
+  #define BUTT_SET 4          // кнопка выбор/игра
+*/
+
 // ************** ОТКЛЮЧЕНИЕ КОМПОНЕНТОВ СИСТЕМЫ (для экономии памяти) *************
 #define USE_BUTTONS 1       // использовать физические кнопки управления играми (0 нет, 1 да)
 #define BT_MODE 0           // использовать блютус (0 нет, 1 да)
 #define USE_NOISE_EFFECTS 1 // крутые полноэкранные эффекты (0 нет, 1 да) СИЛЬНО ЖРУТ ПАМЯТЬ!!!11
 #define USE_FONTS 1         // использовать буквы (бегущая строка) (0 нет, 1 да)
+#define USE_CLOCK 0         // использовать часы (0 нет, 1 да)
 
 #define USE_TETRIS 1        // тетрис (0 нет, 1 да)
 #define USE_SNAKE 1         // змейка (0 нет, 1 да)
@@ -91,23 +103,50 @@ boolean controlFlag = false;
 boolean gamemodeFlag = false;
 boolean mazeMode = false;
 int effects_speed = D_EFFECT_SPEED;
+int8_t hrs, mins, secs;
+boolean dotFlag;
+byte modeCode;
+boolean fullTextFlag = false;
 
 #if (USE_FONTS == 1)
 #include "fonts.h"
 #endif
 
+#define autoplayTime ((long)AUTOPLAY_PERIOD * 1000)
+uint32_t autoplayTimer;
+
 #include "timerMinim.h"
-timerMinim autoplayTimer((long)AUTOPLAY_PERIOD * 1000);
 timerMinim effectTimer(D_EFFECT_SPEED);
 timerMinim gameTimer(DEMO_GAME_SPEED);
 timerMinim scrollTimer(D_TEXT_SPEED);
 timerMinim idleTimer((long)IDLE_TIME * 1000);
-timerMinim changeTimer(80);
+timerMinim changeTimer(70);
+timerMinim halfsecTimer(500);
+
+#if (USE_CLOCK == 1)
+#include <Wire.h>
+#include "RTClib.h"
+
+RTC_DS3231 rtc;
+// RTC_DS1307 rtc;
+#endif
 
 void setup() {
 #if (BT_MODE == 1)
   Serial.begin(9600);
 #endif
+
+#if (USE_CLOCK == 1)
+  rtc.begin();
+  if (rtc.lostPower()) {
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+  DateTime now = rtc.now();
+  secs = now.second();
+  mins = now.minute();
+  hrs = now.hour();
+#endif
+
   // настройки ленты
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(BRIGHTNESS);
