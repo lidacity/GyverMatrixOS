@@ -8,6 +8,8 @@ buttonMinim bt_right(BUTT_LEFT);
 buttonMinim bt_up(BUTT_UP);
 buttonMinim bt_down(BUTT_DOWN);
 buttonMinim bt_set(BUTT_SET);
+
+timerMinim stepTimer(100);
 #endif
 
 boolean checkButtons() {
@@ -26,8 +28,25 @@ boolean checkButtons() {
       controlFlag = true;
     }
     if (bt_down.pressed(&commonBtnTimer)) {
-      buttons = 2;
-      controlFlag = true;
+      if (stepTimer.isReady())
+        buttons = 2;
+    }
+
+    if (bt_left.holded(&commonBtnTimer)) {
+      if (stepTimer.isReady())
+        buttons = 3;
+    }
+    if (bt_right.holded(&commonBtnTimer)) {
+      if (stepTimer.isReady())
+        buttons = 1;
+    }
+    if (bt_up.holded(&commonBtnTimer)) {
+      if (stepTimer.isReady())
+        buttons = 0;
+    }
+    if (bt_down.holded(&commonBtnTimer)) {
+      if (stepTimer.isReady())
+        buttons = 2;
     }
   }
 #endif

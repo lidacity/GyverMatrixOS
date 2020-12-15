@@ -77,6 +77,7 @@ void tetrisRoutine() {
     loadingFlag = false;
     newGameTetris();
     gamemodeFlag = true;
+    modeCode = 2;
   }
 
   if (checkButtons()) {
@@ -120,7 +121,7 @@ void tetrisRoutine() {
 
     if (!checkArea(0)) {            // проверяем столкновение с другими фигурами
       if (height >= HEIGHT - 2) {   // проиграл по высоте
-        gameOver();                 // игра окончена, очистить всё
+        gameOverTetris();                 // игра окончена, очистить всё
         newGameTetris();                 // новый раунд
       } else {                      // если не достигли верха
         fixFigure();                // зафиксировать
@@ -209,7 +210,7 @@ void fixFigure() {
 }
 
 // проигрыш
-void gameOver() {
+void gameOverTetris() {
   FastLED.clear();
   FastLED.show();
 

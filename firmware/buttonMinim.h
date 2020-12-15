@@ -15,12 +15,12 @@ buttonMinim::buttonMinim(uint8_t pin) {
 }
 
 boolean buttonMinim::pressed(uint32_t* btnTimer) {
-  if (!digitalRead(_pin) && !_btnFlag && ((uint32_t)millis() - *btnTimer > 80)) {
+  if (!digitalRead(_pin) && !_btnFlag && ((uint32_t)millis() - *btnTimer > 90)) {
     _btnFlag = true;
     *btnTimer = millis();
     return true;
   }
-  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 400)) {
+  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 350)) {
     _btnFlag = false;
     *btnTimer = millis();
   }
@@ -28,11 +28,11 @@ boolean buttonMinim::pressed(uint32_t* btnTimer) {
 }
 
 boolean buttonMinim::clicked(uint32_t* btnTimer) {
-  if (!digitalRead(_pin) && !_btnFlag && ((uint32_t)millis() - *btnTimer > 80)) {
+  if (!digitalRead(_pin) && !_btnFlag && ((uint32_t)millis() - *btnTimer > 90)) {
     _btnFlag = true;
     *btnTimer = millis();
   }
-  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 400)) {
+  if (digitalRead(_pin) && _btnFlag && ((uint32_t)millis() - *btnTimer < 350)) {
     _btnFlag = false;
     *btnTimer = millis();
     return true;

@@ -2,6 +2,7 @@
   Скетч к проекту "Адресная матрица"
   Гайд по постройке матрицы: https://alexgyver.ru/matrix_guide/
   Страница проекта (схемы, описания): https://alexgyver.ru/GyverMatrixBT/
+  Подробное описание прошивки: https://alexgyver.ru/gyvermatrixos-guide/
   Исходники на GitHub: https://github.com/AlexGyver/GyverMatrixBT/
   Нравится, как написан код? Поддержи автора! https://alexgyver.ru/support_alex/
   Автор: AlexGyver Technologies, 2018
@@ -9,11 +10,7 @@
 */
 
 // GyverMatrixOS
-// Версия прошивки 1.6, совместима с приложением GyverMatrixBT версии 1.8 и выше
-
-// ******************************** НАСТРОЙКИ ********************************
-// чем больше матрица и количество частиц (эффекты), тем выше шанс того, что всё зависнет!
-// Данный код стабильно работает на матрице 16х16 (256 диодов). Больше - на ваш страх и риск
+// Версия прошивки 1.7, совместима с приложением GyverMatrixBT версии 1.8 и выше
 
 // ************************ МАТРИЦА *************************
 #define BRIGHTNESS 150        // стандартная маскимальная яркость (0-255)
@@ -28,55 +25,69 @@
 // при неправильной настрйоке матрицы вы получите предупреждение "Wrong matrix parameters! Set to default"
 // шпаргалка по настройке матрицы здесь! https://alexgyver.ru/matrix_guide/
 
+#define MCU_TYPE 0            // микроконтроллер 0 - AVR, 1 - ESP8266, 2 - STM32
+
 // ******************** ЭФФЕКТЫ И РЕЖИМЫ ********************
 #define D_TEXT_SPEED 100      // скорость бегущего текста по умолчанию (мс)
-#define D_EFFECT_SPEED 80     // скорость эффектов по умолчанию (мс) 
+#define D_EFFECT_SPEED 80     // скорость эффектов по умолчанию (мс)
 #define D_GAME_SPEED 250      // скорость игр по умолчанию (мс)
 #define D_GIF_SPEED 80        // скорость гифок (мс)
 #define DEMO_GAME_SPEED 60    // скорость игр в демо режиме (мс)
 
 boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическую смену режимов
-#define AUTOPLAY_PERIOD 15    // время между авто сменой режимов (секунды)
+#define AUTOPLAY_PERIOD 10    // время между авто сменой режимов (секунды)
 #define IDLE_TIME 10          // время бездействия кнопок или Bluetooth (в секундах) после которого запускается автосмена режимов и демо в играх
 
+// о поддерживаемых цветах читай тут https://alexgyver.ru/gyvermatrixos-guide/
 #define GLOBAL_COLOR_1 CRGB::Green    // основной цвет №1 для игр
 #define GLOBAL_COLOR_2 CRGB::Orange   // основной цвет №2 для игр
-// поддерживает 150 цветов, названия можно посмотреть в библиотеке FastLED, файл pixeltypes.h, строка 590
-// также цвет можно задавать в формате HEX (0XFF25AB). Генерировать в любом онлайн колорпикере или в фотошопе!
 
 #define SCORE_SIZE 0          // размер символов счёта в игре. 0 - маленький для 8х8 (шрифт 3х5), 1 - большой (шрифт 5х7)
 #define FONT_TYPE 1           // (0 / 1) два вида маленького шрифта в выводе игрового счёта
 
+// ************** ОТКЛЮЧЕНИЕ КОМПОНЕНТОВ СИСТЕМЫ (для экономии памяти) *************
+#define USE_BUTTONS 1         // использовать физические кнопки управления играми (0 нет, 1 да)
+#define BT_MODE 0             // использовать блютус (0 нет, 1 да)
+#define USE_NOISE_EFFECTS 1   // крутые полноэкранные эффекты (0 нет, 1 да) СИЛЬНО ЖРУТ ПАМЯТЬ!!!11
+#define USE_FONTS 0           // использовать буквы (бегущая строка) (0 нет, 1 да)
+#define USE_CLOCK 0           // использовать часы (0 нет, 1 да)
+
+// игры
+#define USE_SNAKE 0           // игра змейка (0 нет, 1 да)
+#define USE_TETRIS 0          // игра тетрис (0 нет, 1 да)
+#define USE_MAZE 0            // игра лабиринт (0 нет, 1 да)
+#define USE_RUNNER 0          // игра бегалка-прыгалка (0 нет, 1 да)
+#define USE_FLAPPY 0          // игра flappy bird
+#define USE_ARKAN 0           // игра арканоид
+
 // ****************** ПИНЫ ПОДКЛЮЧЕНИЯ *******************
-
+// Arduino (Nano, Mega)
+#if (MCU_TYPE == 0)
 #define LED_PIN 6           // пин ленты
-
 #define BUTT_UP 3           // кнопка вверх
 #define BUTT_DOWN 5         // кнопка вниз
 #define BUTT_LEFT 4         // кнопка влево
 #define BUTT_RIGHT 2        // кнопка вправо
 #define BUTT_SET 7          // кнопка выбор/игра
 
-/*
-  #define LED_PIN 5           // пин ленты
+// esp8266 - плату выбирал Wemos D1 R1
+#elif (MCU_TYPE == 1)
+#define LED_PIN 5           // пин ленты
+#define BUTT_UP 0           // кнопка вверх
+#define BUTT_DOWN 2         // кнопка вниз
+#define BUTT_LEFT 14        // кнопка влево
+#define BUTT_RIGHT 12       // кнопка вправо
+#define BUTT_SET 4          // кнопка выбор/игра
 
-  #define BUTT_UP 0           // кнопка вверх
-  #define BUTT_DOWN 2         // кнопка вниз
-  #define BUTT_LEFT 14         // кнопка влево
-  #define BUTT_RIGHT 12        // кнопка вправо
-  #define BUTT_SET 4          // кнопка выбор/игра
-*/
-
-// ************** ОТКЛЮЧЕНИЕ КОМПОНЕНТОВ СИСТЕМЫ (для экономии памяти) *************
-#define USE_BUTTONS 1       // использовать физические кнопки управления играми (0 нет, 1 да)
-#define BT_MODE 0           // использовать блютус (0 нет, 1 да)
-#define USE_NOISE_EFFECTS 1 // крутые полноэкранные эффекты (0 нет, 1 да) СИЛЬНО ЖРУТ ПАМЯТЬ!!!11
-#define USE_FONTS 1         // использовать буквы (бегущая строка) (0 нет, 1 да)
-#define USE_CLOCK 0         // использовать часы (0 нет, 1 да)
-
-#define USE_TETRIS 1        // тетрис (0 нет, 1 да)
-#define USE_SNAKE 1         // змейка (0 нет, 1 да)
-#define USE_MAZE 0          // лабиринт (0 нет, 1 да)
+// STM32 (BluePill) - плату выбирал STM32F103C
+#elif (MCU_TYPE == 2)
+#define LED_PIN PB12        // пин ленты
+#define BUTT_UP 3           // кнопка вверх
+#define BUTT_DOWN 5         // кнопка вниз
+#define BUTT_LEFT 4         // кнопка влево
+#define BUTT_RIGHT 2        // кнопка вправо
+#define BUTT_SET 7          // кнопка выбор/игра
+#endif
 
 // ******************************** ДЛЯ РАЗРАБОТЧИКОВ ********************************
 #define DEBUG 0
@@ -103,9 +114,9 @@ boolean controlFlag = false;
 boolean gamemodeFlag = false;
 boolean mazeMode = false;
 int effects_speed = D_EFFECT_SPEED;
-int8_t hrs, mins, secs;
+int8_t hrs = 10, mins = 25, secs;
 boolean dotFlag;
-byte modeCode;
+byte modeCode;    // 0 бегущая, 1 часы, 2 игры, 3 нойс маднесс и далее, 21 гифка или картинка
 boolean fullTextFlag = false;
 
 #if (USE_FONTS == 1)
@@ -123,7 +134,7 @@ timerMinim idleTimer((long)IDLE_TIME * 1000);
 timerMinim changeTimer(70);
 timerMinim halfsecTimer(500);
 
-#if (USE_CLOCK == 1)
+#if (USE_CLOCK == 1 && MCU_TYPE == 0)
 #include <Wire.h>
 #include "RTClib.h"
 
@@ -136,7 +147,7 @@ void setup() {
   Serial.begin(9600);
 #endif
 
-#if (USE_CLOCK == 1)
+#if (USE_CLOCK == 1 && MCU_TYPE == 0)
   rtc.begin();
   if (rtc.lostPower()) {
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));

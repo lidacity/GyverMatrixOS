@@ -38,6 +38,9 @@
     snakeRoutine();     // змейка
     tetrisRoutine();    // тетрис
     mazeRoutine();      // лабиринт
+    runnerRoutine();    // бегалка прыгалка
+    flappyRoutine();    // flappy bird
+    arkanoidRoutine();  // арканоид
 
   Бегущая строка:
     fillString("Ваш текст", цвет);    // цвет вида 0x00ff25 или CRGB::Red и проч. цвета
@@ -53,7 +56,7 @@
 
 // ************************* СВОЙ СПИСОК РЕЖИМОВ ************************
 // количество кастомных режимов (которые сами переключаются или кнопкой)
-#define MODES_AMOUNT 25
+#define MODES_AMOUNT 28
 
 void customModes() {
   switch (thisMode) {
@@ -105,7 +108,13 @@ void customModes() {
       break;
     case 23: mazeRoutine();
       break;
-    case 24: clockRoutine();
+    case 24: runnerRoutine();
+      break;
+    case 25: flappyRoutine();
+      break;
+    case 26: arkanoidRoutine();
+      break;
+    case 27: clockRoutine();
       break;
   }
 
@@ -232,9 +241,9 @@ void customRoutine() {
       if (effectTimer.isReady()) {
         if (!loadingFlag && !gamemodeFlag && needUnwrap() && modeCode != 0) clockOverlayUnwrap(CLOCK_X, CLOCK_Y);
         if (loadingFlag) loadFlag2 = true;
-        
+
         customModes();                // режимы крутятся, пиксели мутятся
-        
+
         if (!gamemodeFlag && modeCode != 0) clockOverlayWrap(CLOCK_X, CLOCK_Y);
 #if (OVERLAY_CLOCK == 1 && USE_CLOCK == 1)
         if (loadFlag2) {
@@ -291,7 +300,7 @@ void btnsModeChange() {
     if (gameDemo) {
       gameSpeed = DEMO_GAME_SPEED;
       gameTimer.setInterval(gameSpeed);
-      AUTOPLAY = false;
+      AUTOPLAY = true;
     } else {
       gameSpeed = D_GAME_SPEED;
       gameTimer.setInterval(gameSpeed);

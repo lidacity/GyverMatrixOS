@@ -20,12 +20,12 @@ void snakeRoutine() {
     loadingFlag = false;
     newGameSnake();
     gamemodeFlag = true;
-  }
-
-  buttonsTick();
+    modeCode = 2;
+  }  
+  
+  buttonsTickSnake();
 
   if (gameTimer.isReady()) {
-
     // БЛОК ГЕНЕРАЦИИ ЯБЛОКА
     while (!apple_flag) {                         // пока яблоко не создано
       appleX = random(0, WIDTH);                  // взять случайные координаты
@@ -50,51 +50,54 @@ void snakeRoutine() {
     headX += vectorX;
     headY += vectorY;
 
-    // проверка на pizdetc
-    if ((getPixColorXY(headX, headY) != 0 && getPixColorXY(headX, headY) != GLOBAL_COLOR_2)   // если змея врезалась во что то, но не в яблоко
-        || headX < 0 || headX > WIDTH - 1       // если вышла за границы поля
-        || headY < 0 || headY > HEIGHT - 1) {
-      pizdetc = true;                           // флаг на отработку
+    if (headX < 0 || headX > WIDTH - 1 || headY < 0 || headY > HEIGHT - 1) { // если вышла за границы поля
+      pizdetc = true;
     }
 
-    // БЛОК ОТРАБОТКИ ПОЕДАНИЯ ЯБЛОКА
-    if ((long)getPixColorXY(headX, headY) == (long)GLOBAL_COLOR_2) { // если попали головой в яблоко
-      apple_flag = false;                       // флаг что яблока больше нет
-      snakeLength++;                            // увеличить длину змеи
-      buttVector[snakeLength] = 4;              // запоминаем, что надо будет не стирать хвост
-    }
+    if (!pizdetc) {
+      // проверка на pizdetc
+      if ((long)(getPixColorXY(headX, headY) != 0 && (long)getPixColorXY(headX, headY) != GLOBAL_COLOR_2)) {   // если змея врезалась во что то, но не в яблоко
+        pizdetc = true;                           // флаг на отработку
+      }
 
-    // вычисляем координату хвоста (чтобы стереть) по массиву вектора
-    switch (buttVector[0]) {
-      case 0: buttX += 1;
-        break;
-      case 1: buttX -= 1;
-        break;
-      case 2: buttY += 1;
-        break;
-      case 3: buttY -= 1;
-        break;
-      case 4: missDelete = true;  // 4 значит не стирать!
-        break;
-    }
+      // БЛОК ОТРАБОТКИ ПОЕДАНИЯ ЯБЛОКА
+      if (!pizdetc && (long)getPixColorXY(headX, headY) == (long)GLOBAL_COLOR_2) { // если попали головой в яблоко
+        apple_flag = false;                       // флаг что яблока больше нет
+        snakeLength++;                            // увеличить длину змеи
+        buttVector[snakeLength] = 4;              // запоминаем, что надо будет не стирать хвост
+      }
 
-    // смещаем весь массив векторов хвоста ВЛЕВО
-    for (byte i = 0; i < snakeLength; i++) {
-      buttVector[i] = buttVector[i + 1];
-    }
+      // вычисляем координату хвоста (чтобы стереть) по массиву вектора
+      switch (buttVector[0]) {
+        case 0: buttX += 1;
+          break;
+        case 1: buttX -= 1;
+          break;
+        case 2: buttY += 1;
+          break;
+        case 3: buttY -= 1;
+          break;
+        case 4: missDelete = true;  // 4 значит не стирать!
+          break;
+      }
 
-    // если змея не в процессе роста, закрасить бывший хвост чёрным
-    if (!missDelete) {
-      drawPixelXY(buttX, buttY, 0x000000);
+      // смещаем весь массив векторов хвоста ВЛЕВО
+      for (byte i = 0; i < snakeLength; i++) {
+        buttVector[i] = buttVector[i + 1];
+      }
+
+      // если змея не в процессе роста, закрасить бывший хвост чёрным
+      if (!missDelete) {
+        drawPixelXY(buttX, buttY, 0x000000);
+      }
+      else missDelete = false;
+
+      // рисуем голову змеи в новом положении
+      drawPixelXY(headX, headY, GLOBAL_COLOR_1);
       FastLED.show();
     }
-    else missDelete = false;
-
-    // рисуем голову змеи в новом положении
-    drawPixelXY(headX, headY, GLOBAL_COLOR_1);
-    FastLED.show();
+    if (gameDemo) snakeDemo();
   }
-  if (gameDemo) snakeDemo();
 
   // если он настал
   if (pizdetc) {
@@ -160,11 +163,10 @@ void snakeDemo() {
 
     if (vectorY < 0 && headX == 0) buttons = 1;
     if (vectorY < 0) buttons = 3;
-    return;
   }
 }
 
-void buttonsTick() {
+void buttonsTickSnake() {
   if (checkButtons()) {
     if (buttons == 3) {   // кнопка нажата
       vectorX = -1;

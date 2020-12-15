@@ -203,12 +203,12 @@ void drawPixelXY(int8_t x, int8_t y, CRGB color) {
 
 // функция получения цвета пикселя по его номеру
 uint32_t getPixColor(int thisPixel) {
+  if (thisPixel < 0 || thisPixel > NUM_LEDS - 1) return 0;
   return (((uint32_t)leds[thisPixel].r << 16) | ((long)leds[thisPixel].g << 8 ) | (long)leds[thisPixel].b);
 }
 
 // функция получения цвета пикселя в матрице по его координатам
-uint32_t getPixColorXY(byte x, byte y) {
-  //if (x < 0 || x > WIDTH - 1 || y < 0 || y > HEIGHT - 1) return;
+uint32_t getPixColorXY(int8_t x, int8_t y) {
   return getPixColor(getPixelNumber(x, y));
 }
 
@@ -262,7 +262,7 @@ uint32_t getPixColorXY(byte x, byte y) {
 #endif
 
 // получить номер пикселя в ленте по координатам
-uint16_t getPixelNumber(byte x, byte y) {
+uint16_t getPixelNumber(int8_t x, int8_t y) {
   if ((THIS_Y % 2 == 0) || MATRIX_TYPE) {               // если чётная строка
     return (THIS_Y * _WIDTH + THIS_X);
   } else {                                              // если нечётная строка

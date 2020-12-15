@@ -4,7 +4,7 @@
 #define OVERLAY_CLOCK 1     // часы на фоне всех эффектов и игр. Жрёт SRAM память!
 #define CLOCK_ORIENT 0      // 0 горизонтальные, 1 вертикальные
 #define CLOCK_X 0           // позиция часов по X (начало координат - левый нижний угол)
-#define CLOCK_Y 0           // позиция часов по Y (начало координат - левый нижний угол)
+#define CLOCK_Y 6           // позиция часов по Y (начало координат - левый нижний угол)
 #define WALKING_CLOCK 1     // часы бегают по экрану в clockRoutine()
 #define COLOR_MODE 2        // Режим цвета часов
 //                          0 - заданные ниже цвета
@@ -57,8 +57,10 @@ void drawClock(byte hrs, byte mins, boolean dots, byte X, byte Y) {
     drawPixelXY(X + 7, Y + 1, clockLED[2]);
     drawPixelXY(X + 7, Y + 3, clockLED[2]);
   } else {
-    //drawPixelXY(X + 7, Y + 1, 0);
-    //drawPixelXY(X + 7, Y + 3, 0);
+    if (modeCode == 1) {
+      drawPixelXY(X + 7, Y + 1, 0);
+      drawPixelXY(X + 7, Y + 3, 0);
+    }
   }
   drawDigit3x5(mins / 10, X + 8, Y, clockLED[3]);
   drawDigit3x5(mins % 10, X + 12, Y, clockLED[4]);
@@ -73,10 +75,12 @@ void drawClock(byte hrs, byte mins, boolean dots, byte X, byte Y) {
 
 void clockRoutine() {
   if (loadingFlag) {
+#if (MCU_TYPE == 0)
     DateTime now = rtc.now();
     secs = now.second();
     mins = now.minute();
     hrs = now.hour();
+#endif
     loadingFlag = false;
     modeCode = 1;
   }
@@ -95,10 +99,12 @@ void clockTicker() {
       if (secs > 59) {      // каждую минуту
         secs = 0;
         mins++;
+#if (MCU_TYPE == 0)
         DateTime now = rtc.now();
         secs = now.second();
         mins = now.minute();
         hrs = now.hour();
+#endif
       }
       if (mins > 59) {      // каждый час
         mins = 0;
@@ -106,7 +112,6 @@ void clockTicker() {
         if (hrs > 23) hrs = 0;  // сутки!
       }
     }
-    hrs = 10; mins = 25;
   }
 }
 
@@ -141,6 +146,7 @@ void clockOverlayWrap(byte posX, byte posY) {
   clockTicker();
   drawClock(hrs, mins, dotFlag, posX, posY);
 }
+
 void clockOverlayUnwrap(byte posX, byte posY) {
   byte thisLED = 0;
   for (byte i = posX; i < posX + 15; i++) {
@@ -150,6 +156,7 @@ void clockOverlayUnwrap(byte posX, byte posY) {
     }
   }
 }
+
 #elif (CLOCK_ORIENT == 1 && USE_CLOCK == 1 && OVERLAY_CLOCK == 1)
 void clockOverlayWrap(byte posX, byte posY) {
   byte thisLED = 0;
@@ -162,6 +169,7 @@ void clockOverlayWrap(byte posX, byte posY) {
   clockTicker();
   drawClock(hrs, mins, dotFlag, posX, posY);
 }
+
 void clockOverlayUnwrap(byte posX, byte posY) {
   byte thisLED = 0;
   for (byte i = posX; i < posX + 7; i++) {

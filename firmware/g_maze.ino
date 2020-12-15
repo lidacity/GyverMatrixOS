@@ -22,29 +22,28 @@ int8_t playerPos[2];
 uint32_t labTimer;
 
 void newGameMaze() {
-  FastLED.clear();
-  FastLED.show();
-
-  //randomSeed(millis());
-
   playerPos[0] = !SHIFT;
   playerPos[1] = !SHIFT;
 
   buttons = 4;
 
-  smartMaze();   // "умная" генерация лабиринта
-  makeHoles();   // дырявим несколько стен
-  // GenerateMaze(maze, MAZE_WIDTH, MAZE_HEIGHT);    // генерировать лабиринт
+  if (MCU_TYPE == 0) {
+    smartMaze();   // "умная" генерация лабиринта. Работает только для AVR!
+    makeHoles();   // дырявим несколько стен
+  } else {
+    GenerateMaze(maze, MAZE_WIDTH, MAZE_HEIGHT);    // генерировать лабиринт обычным способом
+    SolveMaze(maze, MAZE_WIDTH, MAZE_HEIGHT);       // найти путь
+  }
 
   if (!(GAMEMODE || mazeMode)) {
     for (byte y = 0; y < HEIGHT; y++) {
       for (byte x = 0; x < WIDTH; x++) {
         switch (maze[(y + SHIFT) * MAZE_WIDTH + (x + SHIFT)]) {
-          case 1:  drawPixelXY(x, y, GLOBAL_COLOR_1);  break;
+          case 1:  drawPixelXY(x, y, GLOBAL_COLOR_1); break;
           case 2:
             // drawPixelXY(x, y, GLOBAL_COLOR_1);    // рисовать путь к выходу
             break;
-          default: drawPixelXY(x, y, 0x000000);  break;
+          default: drawPixelXY(x, y, 0x000000); break;
         }
       }
       FastLED.show();
@@ -74,6 +73,7 @@ void mazeRoutine() {
     loadingFlag = false;
     newGameMaze();
     gamemodeFlag = true;
+    modeCode = 2;
   }
 
   if (gameDemo) demoMaze();
