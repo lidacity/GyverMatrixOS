@@ -10,9 +10,11 @@
 */
 
 // GyverMatrixOS
-// Версия прошивки 1.7, совместима с приложением GyverMatrixBT версии 1.8 и выше
+// Версия прошивки 1.71, совместима с приложением GyverMatrixBT версии 1.8 и выше
 
 // ************************ МАТРИЦА *************************
+// если прошивка не лезет в Arduino NANO - отключай режимы! Строка 53 и ниже
+
 #define BRIGHTNESS 150        // стандартная маскимальная яркость (0-255)
 #define CURRENT_LIMIT 2000    // лимит по току в миллиамперах, автоматически управляет яркостью (пожалей свой блок питания!) 0 - выключить лимит
 
@@ -25,7 +27,10 @@
 // при неправильной настрйоке матрицы вы получите предупреждение "Wrong matrix parameters! Set to default"
 // шпаргалка по настройке матрицы здесь! https://alexgyver.ru/matrix_guide/
 
-#define MCU_TYPE 0            // микроконтроллер 0 - AVR, 1 - ESP8266, 2 - STM32
+#define MCU_TYPE 0            // микроконтроллер: 
+//                            0 - AVR (Arduino NANO/MEGA/UNO)
+//                            1 - ESP8266 (NodeMCU, Wemos D1)
+//                            2 - STM32 (Blue Pill)
 
 // ******************** ЭФФЕКТЫ И РЕЖИМЫ ********************
 #define D_TEXT_SPEED 100      // скорость бегущего текста по умолчанию (мс)
@@ -34,7 +39,7 @@
 #define D_GIF_SPEED 80        // скорость гифок (мс)
 #define DEMO_GAME_SPEED 60    // скорость игр в демо режиме (мс)
 
-boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическую смену режимов
+boolean AUTOPLAY = 1;         // 0 выкл / 1 вкл автоматическую смену режимов
 #define AUTOPLAY_PERIOD 10    // время между авто сменой режимов (секунды)
 #define IDLE_TIME 10          // время бездействия кнопок или Bluetooth (в секундах) после которого запускается автосмена режимов и демо в играх
 
@@ -47,18 +52,18 @@ boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическу
 
 // ************** ОТКЛЮЧЕНИЕ КОМПОНЕНТОВ СИСТЕМЫ (для экономии памяти) *************
 #define USE_BUTTONS 1         // использовать физические кнопки управления играми (0 нет, 1 да)
-#define BT_MODE 0             // использовать блютус (0 нет, 1 да)
+#define BT_MODE 1             // использовать блютус (0 нет, 1 да)
 #define USE_NOISE_EFFECTS 1   // крутые полноэкранные эффекты (0 нет, 1 да) СИЛЬНО ЖРУТ ПАМЯТЬ!!!11
-#define USE_FONTS 0           // использовать буквы (бегущая строка) (0 нет, 1 да)
-#define USE_CLOCK 0           // использовать часы (0 нет, 1 да)
+#define USE_FONTS 1           // использовать буквы (бегущая строка) (0 нет, 1 да)
+#define USE_CLOCK 1           // использовать часы (0 нет, 1 да)
 
 // игры
-#define USE_SNAKE 0           // игра змейка (0 нет, 1 да)
-#define USE_TETRIS 0          // игра тетрис (0 нет, 1 да)
-#define USE_MAZE 0            // игра лабиринт (0 нет, 1 да)
-#define USE_RUNNER 0          // игра бегалка-прыгалка (0 нет, 1 да)
-#define USE_FLAPPY 0          // игра flappy bird
-#define USE_ARKAN 0           // игра арканоид
+#define USE_SNAKE 1           // игра змейка (0 нет, 1 да)
+#define USE_TETRIS 1          // игра тетрис (0 нет, 1 да)
+#define USE_MAZE 1            // игра лабиринт (0 нет, 1 да)
+#define USE_RUNNER 1          // игра бегалка-прыгалка (0 нет, 1 да)
+#define USE_FLAPPY 1          // игра flappy bird
+#define USE_ARKAN 1           // игра арканоид
 
 // ****************** ПИНЫ ПОДКЛЮЧЕНИЯ *******************
 // Arduino (Nano, Mega)
@@ -66,27 +71,28 @@ boolean AUTOPLAY = 1;        // 0 выкл / 1 вкл автоматическу
 #define LED_PIN 6           // пин ленты
 #define BUTT_UP 3           // кнопка вверх
 #define BUTT_DOWN 5         // кнопка вниз
-#define BUTT_LEFT 4         // кнопка влево
-#define BUTT_RIGHT 2        // кнопка вправо
+#define BUTT_LEFT 2         // кнопка влево
+#define BUTT_RIGHT 4        // кнопка вправо
 #define BUTT_SET 7          // кнопка выбор/игра
 
+// пины подписаны согласно pinout платы, а не надписям на пинах!
 // esp8266 - плату выбирал Wemos D1 R1
 #elif (MCU_TYPE == 1)
-#define LED_PIN 5           // пин ленты
-#define BUTT_UP 0           // кнопка вверх
-#define BUTT_DOWN 2         // кнопка вниз
-#define BUTT_LEFT 14        // кнопка влево
+#define LED_PIN 2           // пин ленты
+#define BUTT_UP 14          // кнопка вверх
+#define BUTT_DOWN 13        // кнопка вниз
+#define BUTT_LEFT 16        // кнопка влево
 #define BUTT_RIGHT 12       // кнопка вправо
-#define BUTT_SET 4          // кнопка выбор/игра
+#define BUTT_SET 15         // кнопка выбор/игра
 
 // STM32 (BluePill) - плату выбирал STM32F103C
 #elif (MCU_TYPE == 2)
-#define LED_PIN PB12        // пин ленты
-#define BUTT_UP 3           // кнопка вверх
-#define BUTT_DOWN 5         // кнопка вниз
-#define BUTT_LEFT 4         // кнопка влево
-#define BUTT_RIGHT 2        // кнопка вправо
-#define BUTT_SET 7          // кнопка выбор/игра
+#define LED_PIN PB12         // пин ленты
+#define BUTT_UP PA1          // кнопка вверх
+#define BUTT_DOWN PA3        // кнопка вниз
+#define BUTT_LEFT PA0        // кнопка влево
+#define BUTT_RIGHT PA2       // кнопка вправо
+#define BUTT_SET PA4         // кнопка выбор/игра
 #endif
 
 // ******************************** ДЛЯ РАЗРАБОТЧИКОВ ********************************
@@ -134,7 +140,7 @@ timerMinim idleTimer((long)IDLE_TIME * 1000);
 timerMinim changeTimer(70);
 timerMinim halfsecTimer(500);
 
-#if (USE_CLOCK == 1 && MCU_TYPE == 0)
+#if (USE_CLOCK == 1 && (MCU_TYPE == 0 || MCU_TYPE == 1))
 #include <Wire.h>
 #include "RTClib.h"
 
@@ -147,7 +153,7 @@ void setup() {
   Serial.begin(9600);
 #endif
 
-#if (USE_CLOCK == 1 && MCU_TYPE == 0)
+#if (USE_CLOCK == 1 && (MCU_TYPE == 0 || MCU_TYPE == 1))
   rtc.begin();
   if (rtc.lostPower()) {
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
