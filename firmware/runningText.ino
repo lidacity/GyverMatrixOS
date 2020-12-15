@@ -11,6 +11,9 @@
 #define SPACE 1           // пробел
 
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
+
+#if (USE_FONTS == 1)
+
 int offset = WIDTH;
 
 void fillString(String text) {
@@ -82,6 +85,12 @@ uint8_t getFont(uint8_t font, uint8_t row) {
     return pgm_read_byte(&(fontHEX[font + 47][row]));
   }
 }
+
+#elif (USE_FONTS == 0)
+void fillString(String text) {
+  return;
+}
+#endif
 
 /*
   // интерпретатор кода символа по ASCII в его номер в массиве fontHEX (для Arduino IDE до 1.6.*)

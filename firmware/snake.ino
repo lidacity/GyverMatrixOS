@@ -3,7 +3,6 @@
 // **************** НАСТРОЙКИ ****************
 #define START_LENGTH 4    // начальная длина змейки
 #define MAX_LENGTH 80     // максимальная длина змейки
-#define DEMO_SNAKE 0      // демо режим (в этой версии не дописан)
 
 // **************** ДЛЯ РАЗРАБОТЧИКОВ ****************
 int8_t vectorX, vectorY;
@@ -16,9 +15,15 @@ int snakeLength;
 boolean butt_flag, pizdetc;
 
 void snakeRoutine() {
+  if (loadingFlag) {
+    FastLED.clear();
+    loadingFlag = false;
+    newGameSnake();
+  }
+
   buttonsTick();
 
-  if (DEMO_SNAKE) snakeDemo();
+  if (gameDemo) snakeDemo();
 
   if (gameTimer.isReady()) {
 
@@ -117,30 +122,62 @@ void snakeRoutine() {
 }
 
 void snakeDemo() {
+  // смещение головы змеи
+  int8_t nextX = headX + vectorX;
+  int8_t nextY = headY + vectorY;
+
+  // ищем яблоко
+  if (headX == appleX) {                // яблоко на одной линии по вертикали
+    if (headY < appleY) buttons = 0;
+    if (headY > appleY) buttons = 2;
+  }
+  if (headY == appleY) {                // яблоко на одной линии по горизонтали
+    if (headX < appleX) buttons = 1;
+    if (headX > appleX) buttons = 3;
+  }
+
+  if (getPixColorXY(nextX, nextY) == GLOBAL_COLOR_1) {   // проверка на столкновение с собой
+    // поворачиваем налево
+    if (vectorX > 0) buttons = 0;
+    if (vectorX < 0) buttons = 2;
+    if (vectorY > 0) buttons = 3;
+    if (vectorY < 0) buttons = 1;
+    return;
+  }
+
+  if (nextX < 0 || nextX > WIDTH - 1 || nextY < 0        // проверка на столкновение со стеной
+      || nextY > HEIGHT - 1) {
+    // поворачиваем направо
+    if (vectorX > 0) buttons = 2;
+    if (vectorX < 0) buttons = 0;
+    if (vectorY > 0) buttons = 1;
+    if (vectorY < 0) buttons = 3;
+    return;
+  }
 
 }
 
 void buttonsTick() {
   if (checkButtons()) {
-    if (buttons[3]) {   // кнопка нажата
+    if (buttons == 3) {   // кнопка нажата
       vectorX = -1;
       vectorY = 0;
-      buttons[3] = 0;
+      buttons = 4;
     }
-    if (buttons[1]) {   // кнопка нажата
+    if (buttons == 1) {   // кнопка нажата
       vectorX = 1;
       vectorY = 0;
-      buttons[1] = 0;
+      buttons = 4;
     }
-    if (buttons[0]) {   // кнопка нажата
+    if (buttons == 0) {   // кнопка нажата
       vectorY = 1;
       vectorX = 0;
-      buttons[0] = 0;
+      buttons = 4;
     }
-    if (buttons[2]) {   // кнопка нажата
+    if (buttons == 2) {   // кнопка нажата
       vectorY = -1;
       vectorX = 0;
-      buttons[2] = 0;
+      buttons = 4;
     }
   }
 }
@@ -148,7 +185,7 @@ void buttonsTick() {
 void newGameSnake() {
   FastLED.clear();
   // свежее зерно для генератора случайных чисел
-  randomSeed(analogRead(2) * analogRead(3));
+  randomSeed(millis());
 
   // длина из настроек, начинаем в середине экрана, бла-бла-бла
   snakeLength = START_LENGTH;
@@ -158,6 +195,7 @@ void newGameSnake() {
 
   vectorX = 1;  // начальный вектор движения задаётся вот здесь
   vectorY = 0;
+  buttons = 4;
 
   // первоначальная отрисовка змейки и забивка массива векторов для хвоста
   for (byte i = 0; i < snakeLength; i++) {

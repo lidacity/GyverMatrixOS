@@ -2,7 +2,6 @@
 
 // **************** НАСТРОЙКИ ****************
 #define FAST_SPEED 20     // скорость падения при удержании "вниз" (меньше - быстрее)
-#define DEMO_TETRIS 0     // позиция новой фигуры в верху экрана случайна. 1 - вкл, 0 - выкл
 #define STEER_SPEED 40    // скорость перемещения в бок при удержании кнопки (меньше - быстрее) на BT версии не работает!
 
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
@@ -73,20 +72,26 @@ const int8_t figures[7][12][2] PROGMEM = {
 };
 
 void tetrisRoutine() {
+  if (loadingFlag) {
+    FastLED.clear();
+    loadingFlag = false;
+    newGameTetris();
+  }
+
   if (checkButtons()) {
 
-    if (buttons[3]) {   // кнопка нажата
-      buttons[3] = 0;
+    if (buttons == 3) {   // кнопка нажата
+      buttons = 4;
       stepLeft();
     }
 
-    if (buttons[1]) {
-      buttons[1] = 0;
+    if (buttons == 1) {
+      buttons = 4;
       stepRight();
     }
 
-    if (buttons[0]) {
-      buttons[0] = 0;
+    if (buttons == 0) {
+      buttons = 4;
       if (checkArea(3)) {       // проверка возможности поворота
         prev_ang = ang;         // запоминаем старый угол
         ang = ++ang % 4;        // изменяем ang от 0 до 3 (да, хитро)
@@ -94,8 +99,8 @@ void tetrisRoutine() {
       }
     }
 
-    if (buttons[2]) {             // кнопка вниз удерживается
-      buttons[2] = 0;
+    if (buttons == 2) {             // кнопка вниз удерживается
+      buttons = 4;
       gameTimer.setInterval(FAST_SPEED);  // увеличить скорость
     }
   }
@@ -134,59 +139,62 @@ void tetrisRoutine() {
 
 // поиск и очистка заполненных уровней
 void checkAndClear() {
-  linesToClear = 0;         // счётчик заполненных строк по вертикали
-  boolean full_flag;        // флаг заполненности
-  byte lineNum = 255;       // высота, с которой начинаются заполненные строки (искусственно увеличена)
-  for (byte Y = 0; Y < HEIGHT; Y++) {   // сканируем от точки падения
-    full_flag = true;                   // поднимаем флаг. Будет сброшен, если найдём чёрный пиксель
-    for (byte X = 0; X < WIDTH; X++) {  // проходимся по строкам
-      if ((long)getPixColorXY(X, Y) == (long)0x000000) {  // если хоть один пиксель чёрный
-        full_flag = false;                                 // считаем строку неполной
+  linesToClear = 1;                 // счётчик заполненных строк по вертикали. Искусственно принимаем 1 для работы цикла
+  boolean full_flag = true;         // флаг заполненности
+  while (linesToClear != 0) {       // чисти чисти пока не будет чисто!
+    linesToClear = 0;
+    byte lineNum = 255;       // высота, с которой начинаются заполненные строки (искусственно увеличена)
+    for (byte Y = 0; Y < HEIGHT; Y++) {   // сканируем по высоте
+      full_flag = true;                   // поднимаем флаг. Будет сброшен, если найдём чёрный пиксель
+      for (byte X = 0; X < WIDTH; X++) {  // проходимся по строкам
+        if ((long)getPixColorXY(X, Y) == (long)0x000000) {  // если хоть один пиксель чёрный
+          full_flag = false;                                 // считаем строку неполной
+        }
+      }
+      if (full_flag) {        // если нашлась заполненная строка
+        linesToClear++;       // увеличиваем счётчик заполненных строк
+        if (lineNum == 255)   // если это первая найденная строка
+          lineNum = Y;        // запоминаем высоту. Значение 255 было просто "заглушкой"
+      } else {                // если строка не полная
+        if (lineNum != 255)   // если lineNum уже не 255 (значит строки были найдены!!)
+          break;              // покинуть цикл
       }
     }
-    if (full_flag) {        // если нашлась заполненная строка
-      linesToClear++;       // увеличиваем счётчик заполненных строк
-      if (lineNum == 255)   // если это первая найденная строка
-        lineNum = Y;        // запоминаем высоту. Значение 255 было просто "заглушкой"
-    } else {                // если строка не полная
-      if (lineNum != 255)   // если lineNum уже не 255 (значит строки были найдены!!)
-        break;              // покинуть цикл
-    }
-  }
-  if (linesToClear > 0) {             // если найденных полных строк больше 1
-    lineCleanCounter += linesToClear;   // суммируем количество очищенных линий (игровой "счёт")
+    if (linesToClear > 0) {             // если найденных полных строк больше 1
+      lineCleanCounter += linesToClear;   // суммируем количество очищенных линий (игровой "счёт")
 
-    // заполняем весь блок найденных строк белым цветом слева направо
-    for (byte X = 0; X < WIDTH; X++) {
-      for (byte i = 0; i < linesToClear; i++) {
-        leds[getPixelNumber(X, lineNum + i)] = CHSV(0, 0, 255);         // закрашиваем его белым
-      }
-      FastLED.show();
-      delay(5);     // задержка между пикселями слева направо
-    }
-    delay(10);
-
-    // теперь плавно уменьшаем яркость всего белого блока до нуля
-    for (byte val = 0; val <= 30; val++) {
+      // заполняем весь блок найденных строк белым цветом слева направо
       for (byte X = 0; X < WIDTH; X++) {
         for (byte i = 0; i < linesToClear; i++) {
-          leds[getPixelNumber(X, lineNum + i)] = CHSV(0, 0, 240 - 8 * val);  // гасим белый цвет
-        }
-      }
-      FastLED.show();
-      delay(5);       // задержка между сменой цвета
-    }
-    delay(10);
-
-    // и теперь смещаем вниз все пиксели выше уровня с первой найденной строкой
-    for (byte i = 0; i < linesToClear; i++) {
-      for (byte Y = lineNum; Y < HEIGHT - 1; Y++) {
-        for (byte X = 0; X < WIDTH; X++) {
-          drawPixelXY(X, Y, getPixColorXY(X, Y + 1));      // сдвигаем вниз
+          leds[getPixelNumber(X, lineNum + i)] = CHSV(0, 0, 255);         // закрашиваем его белым
         }
         FastLED.show();
+        delay(5);     // задержка между пикселями слева направо
       }
-      delay(100);       // задержка между "сдвигами" всех пикселей на один уровень
+      delay(10);
+
+      // теперь плавно уменьшаем яркость всего белого блока до нуля
+      for (byte val = 0; val <= 30; val++) {
+        for (byte X = 0; X < WIDTH; X++) {
+          for (byte i = 0; i < linesToClear; i++) {
+            leds[getPixelNumber(X, lineNum + i)] = CHSV(0, 0, 240 - 8 * val);  // гасим белый цвет
+          }
+        }
+        FastLED.show();
+        delay(5);       // задержка между сменой цвета
+      }
+      delay(10);
+
+      // и теперь смещаем вниз все пиксели выше уровня с первой найденной строкой
+      for (byte i = 0; i < linesToClear; i++) {
+        for (byte Y = lineNum; Y < HEIGHT - 1; Y++) {
+          for (byte X = 0; X < WIDTH; X++) {
+            drawPixelXY(X, Y, getPixColorXY(X, Y + 1));      // сдвигаем вниз
+          }
+          FastLED.show();
+        }
+        delay(100);       // задержка между "сдвигами" всех пикселей на один уровень
+      }
     }
   }
   gameTimer.reset();
@@ -216,7 +224,9 @@ void gameOver() {
 // новый раунд
 void newGameTetris() {
   Serial.println("lolkek");   // без этого работает некорректно! магия ебаная
+  randomSeed(millis());
   delay(10);
+  buttons = 4;
   height = HEIGHT;    // высота = высоте матрицы
   pos = WIDTH / 2;    // фигура появляется в середине
   fig = random(7);    // выбираем слулчайн фигуру
@@ -227,7 +237,7 @@ void newGameTetris() {
   color = colors[color_index];
 
   // если включен демо-режим, позицию по горизонтали выбираем случайно
-  if (DEMO_TETRIS) pos = random(1, WIDTH - 1);
+  if (gameDemo) pos = random(1, WIDTH - 1);
 
   // возвращаем обычную скорость падения
   gameTimer.setInterval(globalSpeed * 4);

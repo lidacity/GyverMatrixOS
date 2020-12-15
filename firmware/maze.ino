@@ -1,7 +1,7 @@
 // игра лабиринт!
 
 // ***************** НАСТРОЙКИ ГЕНЕРАЦИИ ЛАБИРИНТА *****************
-#define GAMEMODE 0        // режим игры: 0 - видим весь лабиринт, 1 - видим вокруг себя часть
+#define GAMEMODE 1        // режим игры: 0 - видим весь лабиринт, 1 - видим вокруг себя часть
 #define FOV 3             // область видимости в режиме игры 1
 
 #define MAZE_WIDTH 17     // ширина лабиринта (ДОЛЖНА БЫТЬ НЕЧЁТНАЯ!!!!111)
@@ -17,15 +17,19 @@
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
 const uint16_t maxSolves = MAZE_WIDTH * MAZE_WIDTH * 5;
 char *maze = (char*)malloc(MAZE_WIDTH * MAZE_HEIGHT * sizeof(char));;
-byte playerPos[2];
+int8_t playerPos[2];
 uint32_t labTimer;
 
 void newGameMaze() {
   FastLED.clear();
   FastLED.show();
 
+  //randomSeed(millis());
+
   playerPos[0] = !SHIFT;
   playerPos[1] = !SHIFT;
+
+  buttons = 4;
 
   smartMaze();   // "умная" генерация лабиринта
   makeHoles();   // дырявим несколько стен
@@ -64,46 +68,53 @@ void newGameMaze() {
 }
 
 void mazeRoutine() {
+  if (loadingFlag) {
+    FastLED.clear();
+    loadingFlag = false;
+    newGameMaze();
+  }
+
+  if (gameDemo) demoMaze();
   buttonsTickMaze();
 }
 
 void buttonsTickMaze() {
   if (checkButtons()) {
-    if (buttons[3]) {   // кнопка нажата
+    if (buttons == 3) {   // кнопка нажата
       int8_t newPos = playerPos[0] - 1;
       if (newPos >= 0 && newPos <= WIDTH - 1)
         if (getPixColorXY(newPos, playerPos[1]) == 0) {
           movePlayer(newPos, playerPos[1], playerPos[0], playerPos[1]);
           playerPos[0] = newPos;
         }
-      buttons[3] = 0;
+      buttons = 4;
     }
-    if (buttons[1]) {   // кнопка нажата
+    if (buttons == 1) {   // кнопка нажата
       int8_t newPos = playerPos[0] + 1;
       if (newPos >= 0 && newPos <= WIDTH - 1)
         if (getPixColorXY(newPos, playerPos[1]) == 0) {
           movePlayer(newPos, playerPos[1], playerPos[0], playerPos[1]);
           playerPos[0] = newPos;
         }
-      buttons[1] = 0;
+      buttons = 4;
     }
-    if (buttons[0]) {   // кнопка нажата
+    if (buttons == 0) {   // кнопка нажата
       int8_t newPos = playerPos[1] + 1;
       if (newPos >= 0 && newPos <= HEIGHT - 1)
         if (getPixColorXY(playerPos[0], newPos) == 0) {
           movePlayer(playerPos[0], newPos, playerPos[0], playerPos[1]);
           playerPos[1] = newPos;
         }
-      buttons[0] = 0;
+      buttons = 4;
     }
-    if (buttons[2]) {   // кнопка нажата
+    if (buttons == 2) {   // кнопка нажата
       int8_t newPos = playerPos[1] - 1;
       if (newPos >= 0 && newPos <= HEIGHT - 1)
         if (getPixColorXY(playerPos[0], newPos) == 0) {
           movePlayer(playerPos[0], newPos, playerPos[0], playerPos[1]);
           playerPos[1] = newPos;
         }
-      buttons[2] = 0;
+      buttons = 4;
     }
   }
 }
@@ -132,6 +143,26 @@ void movePlayer(int8_t nowX, int8_t nowY, int8_t prevX, int8_t prevY) {
     }
   }
 }
+
+void demoMaze() {
+  if (gameTimer.isReady()) {
+    if (checkPath(0, 1)) buttons = 0;
+    if (checkPath(1, 0)) buttons = 1;
+    if (checkPath(0, -1)) buttons = 2;
+    if (checkPath(-1, 0)) buttons = 3;
+  }
+}
+
+boolean checkPath(int8_t x, int8_t y) {
+  // если проверяемая клетка является путью к выходу
+  if ( (maze[(playerPos[1] + y + SHIFT) * MAZE_WIDTH + (playerPos[0] + x + SHIFT)]) == 2) {
+    maze[(playerPos[1] + SHIFT) * MAZE_WIDTH + (playerPos[0] + SHIFT)] = 4;   // убираем текущую клетку из пути (2 - метка пути, ставим любое число, например 4)
+    return true;
+  }
+  else return false;
+}
+
+
 // функция, перегенерирующая лабиринт до тех пор,
 // пока он не будет соответствовать требованиям "интересности"
 void smartMaze() {
